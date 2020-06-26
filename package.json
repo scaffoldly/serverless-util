@@ -27,7 +27,7 @@
     "Util",
     "Functions"
   ],
-  "license": "UNLICENSED",
+  "license": "GPL-3.0-or-later",
   "author": "Christian Nuss",
   "bugs": {
     "url": "https://github.com/scaffoldly/serverless-util/issues"

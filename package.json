@@ -1,5 +1,5 @@
 {
-  "name": "@rombotics/serverless-util",
+  "name": "@scaffoldly/serverless-util",
   "version": "1.0.9",
   "description": "Serverless Utility Functions",
   "main": "dist/index.js",
@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ROMBOTics/serverless-util.git"
+    "url": "git+https://github.com/scaffoldly/serverless-util.git"
   },
   "files": [
     "dist/**/*"
@@ -31,9 +31,9 @@
   "license": "UNLICENSED",
   "author": "Christian Nuss",
   "bugs": {
-    "url": "https://github.com/ROMBOTics/serverless-util/issues"
+    "url": "https://github.com/scaffoldly/serverless-util/issues"
   },
-  "homepage": "https://github.com/ROMBOTics/serverless-util#readme",
+  "homepage": "https://github.com/scaffoldly/serverless-util#readme",
   "devDependencies": {
     "@types/jest": "^25.1.3",
     "jest": "^25.1.0",

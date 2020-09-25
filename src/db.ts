@@ -1,9 +1,8 @@
-import { DynamoDB } from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { DocumentClient, TableDescription } from 'aws-sdk/clients/dynamodb';
 import { HttpError } from './errors';
+import AWS from './aws';
 
-const tableMetadata: { [key: string]: TableDescription | undefined } = {};
+const tableMetadata: { [key: string]: AWS.DynamoDB.TableDescription | undefined } = {};
 
 const createTableName = (tableName: string, service: string, stage = 'local') => {
   return `${stage}-${service}-${tableName}`;
@@ -142,8 +141,8 @@ const get = async (db: AWS.DynamoDB.DocumentClient, table: string, id: string, c
 };
 
 const listRange = async (
-  db: DocumentClient,
-  dbClassic: DynamoDB,
+  db: AWS.DynamoDB.DocumentClient,
+  dbClassic: AWS.DynamoDB,
   table: string,
   id: string,
   rangeMin: any,
@@ -184,8 +183,8 @@ const listRange = async (
 };
 
 const scanWithIndex = async (
-  db: DocumentClient,
-  dbClassic: DynamoDB,
+  db: AWS.DynamoDB.DocumentClient,
+  dbClassic: AWS.DynamoDB,
   table: string,
   index: string,
   keys: string[],
@@ -214,8 +213,8 @@ const scanWithIndex = async (
 };
 
 const listWithIndex = async (
-  db: DocumentClient,
-  dbClassic: DynamoDB,
+  db: AWS.DynamoDB.DocumentClient,
+  dbClassic: AWS.DynamoDB,
   table: string,
   index: string,
   key: string,
@@ -265,7 +264,7 @@ const scan = async (db: AWS.DynamoDB.DocumentClient, table: string, obj: any, co
   }
 };
 
-const upsert = async (db: DocumentClient, table: string, row: any, id?: string) => {
+const upsert = async (db: AWS.DynamoDB.DocumentClient, table: string, row: any, id?: string) => {
   const primed = prime(row, id);
 
   try {
@@ -290,7 +289,7 @@ const upsert = async (db: DocumentClient, table: string, row: any, id?: string) 
   }
 };
 
-const insert = async (db: DocumentClient, table: string, row: any, id?: string, rangeKey?: string) => {
+const insert = async (db: AWS.DynamoDB.DocumentClient, table: string, row: any, id?: string, rangeKey?: string) => {
   const primed = prime(row, id);
 
   try {
@@ -323,7 +322,7 @@ const insert = async (db: DocumentClient, table: string, row: any, id?: string, 
   }
 };
 
-const getTableMetadata = async (db: DynamoDB, table: string) => {
+const getTableMetadata = async (db: AWS.DynamoDB, table: string) => {
   const metadata = tableMetadata[table];
 
   if (metadata) {
@@ -345,7 +344,7 @@ const getTableMetadata = async (db: DynamoDB, table: string) => {
   }
 };
 
-const getKeyName = async (db: DynamoDB, table: string, type: string, index?: string) => {
+const getKeyName = async (db: AWS.DynamoDB, table: string, type: string, index?: string) => {
   const metadata = await getTableMetadata(db, table);
 
   if (!metadata) {
@@ -385,8 +384,8 @@ const getKeyName = async (db: DynamoDB, table: string, type: string, index?: str
 
 export default class Table {
   tableName: string;
-  db: DocumentClient;
-  dbClassic: DynamoDB;
+  db: AWS.DynamoDB.DocumentClient;
+  dbClassic: AWS.DynamoDB;
   constructor(tableName: string, service: string, stage: string) {
     let options = {};
     if (stage === 'local') {
@@ -396,8 +395,8 @@ export default class Table {
       };
     }
     this.tableName = createTableName(tableName, service, stage);
-    this.db = new DocumentClient(options);
-    this.dbClassic = new DynamoDB(options);
+    this.db = new AWS.DynamoDB.DocumentClient(options);
+    this.dbClassic = new AWS.DynamoDB(options);
   }
 
   async get(id: string, consistentRead = false) {

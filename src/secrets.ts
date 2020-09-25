@@ -1,7 +1,7 @@
-import { SecretsManager } from 'aws-sdk';
 import { HttpError } from './errors';
+import AWS from './aws';
 
-const secretsmanager = new SecretsManager();
+const secretsmanager = new AWS.SecretsManager();
 
 const cache: any = {};
 

@@ -43,7 +43,7 @@ export const GetSecret = async (name: string, key: string | null, stage = 'local
   try {
     const secretResponse = await secretsmanager
       .getSecretValue({
-        SecretId: `lambda/${stage}/${name}-generic-secrets`,
+        SecretId: `lambda/${stage}/${name}`,
       })
       .promise();
 

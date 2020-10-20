@@ -7,7 +7,7 @@ const createTableName = (tableName: string, service: string, stage = 'local') =>
 };
 
 export class Table {
-  _model: typeof dynamo.Model;
+  readonly model: typeof dynamo.Model;
   constructor(
     tableName: string,
     service: string,
@@ -26,17 +26,15 @@ export class Table {
       };
     }
 
-    this._model = dynamo.define(createTableName(tableName, service, stage), {
+    this.model = dynamo.define(createTableName(tableName, service, stage), {
       hashKey,
       rangeKey,
       schema,
       timestamps: true,
     });
 
-    this._model.config({ dynamodb: new AWS.DynamoDB(options) });
+    this.model.config({ dynamodb: new AWS.DynamoDB(options) });
   }
-
-  model = () => this._model;
 }
 
 export { Joi };

@@ -1,19 +1,19 @@
 import dynamo from 'dynamodb';
-import { AnySchema } from 'joi';
+import * as Joi from 'joi';
 import AWS from './aws';
 
 const createTableName = (tableName: string, service: string, stage = 'local') => {
   return `${stage}-${service}-${tableName}`;
 };
 
-export default class Table {
+export class Table {
   _model: typeof dynamo.Model;
   constructor(
     tableName: string,
     service: string,
     stage: string,
     schema: {
-      [key: string]: AnySchema | { [key: string]: AnySchema };
+      [key: string]: Joi.AnySchema | { [key: string]: Joi.AnySchema };
     },
     hashKey: string,
     rangeKey?: string,
@@ -38,3 +38,5 @@ export default class Table {
 
   model = () => this._model;
 }
+
+export { Joi };

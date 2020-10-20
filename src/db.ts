@@ -1,4 +1,4 @@
-import dynamo from 'dynamodb';
+import * as dynamo from 'dynamodb';
 import * as Joi from 'joi';
 import AWS from './aws';
 

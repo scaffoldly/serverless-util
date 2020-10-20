@@ -35,7 +35,7 @@ export const requiredParameters = (obj: any, parameterNames: string[]) => {
     json = obj;
   }
 
-  parameterNames.forEach(key => {
+  parameterNames.forEach((key) => {
     if (!json[key]) {
       throw new HttpError(422, `Missing required parameters: ${key}`);
     }
@@ -64,7 +64,7 @@ export const optionalParameters = (obj: any, parameterNames: string[], requreAtL
     json = obj;
   }
 
-  parameterNames.forEach(key => {
+  parameterNames.forEach((key) => {
     if (json[key]) {
       params[key] = json[key];
     }
@@ -78,7 +78,7 @@ export const optionalParameters = (obj: any, parameterNames: string[], requreAtL
 };
 
 const wait = (ms: number) => {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     console.log(`waiting ${ms} ms...`);
     setTimeout(resolve, ms);
   });
@@ -97,5 +97,6 @@ export const poll = async (fn: any, fnCondition: any, ms = 1000, maxAttempts = 1
 };
 
 export { default as Table } from './db';
+export { default as AWS } from './aws';
 export { GetSecret } from './secrets';
 export { HttpError } from './errors';

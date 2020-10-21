@@ -28,7 +28,8 @@ export class Table {
       };
     }
 
-    this.model = dynamo.define(createTableName(tableName, service, stage), {
+    this.model = dynamo.define(tableName, {
+      tableName: createTableName(tableName, service, stage),
       hashKey,
       rangeKey,
       schema,

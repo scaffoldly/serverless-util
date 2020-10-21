@@ -456,27 +456,6 @@
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
 
-"@scaffoldly/bunyan@1.8.15":
-  version "1.8.15"
-  resolved "https://registry.yarnpkg.com/@scaffoldly/bunyan/-/bunyan-1.8.15.tgz#2149a883e3b2f15371db88121474ef0f2c89b0d4"
-  integrity sha512-n3+J/mEzClb9XJyFHTOOY/wL2Cgg6W6VKYhOCmIpolXDnj54dcOfq2/A++pPmsXxJmq2F/TlN3VbebdtzMBdIA==
-  optionalDependencies:
-    moment "^2.19.3"
-    safe-json-stringify "~1"
-
-"@scaffoldly/dynamodb@1.2.4":
-  version "1.2.4"
-  resolved "https://registry.yarnpkg.com/@scaffoldly/dynamodb/-/dynamodb-1.2.4.tgz#3ed03a59f8b944de05676d83c246e6b556bf49f3"
-  integrity sha512-2N4AJaDdbdXqUhP4LjFhtL6wN0j8jGcVLlSzuzkOYJTNoRM/z3YngnKC8eT+LWFS3WYeHowuAoTku0OWfWW5Dg==
-  dependencies:
-    "@scaffoldly/bunyan" "1.8.15"
-    async "1.5.x"
-    aws-sdk "^2.186.x"
-    joi "10.6.x"
-    lodash "4.x.x"
-    node-uuid "1.4.x"
-    stream-to-promise "~2.2.0"
-
 "@sinonjs/commons@^1.7.0":
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/@sinonjs/commons/-/commons-1.8.1.tgz#e7df00f98a203324f6dc7cc606cad9d4a8ab2217"
@@ -1097,6 +1076,14 @@ builtin-modules@^1.1.1:
   resolved "https://registry.yarnpkg.com/builtin-modules/-/builtin-modules-1.1.1.tgz#270f076c5a72c02f5b65a47df94c5fe3a278892f"
   integrity sha1-Jw8HbFpywC9bZaR9+Uxf46J4iS8=
 
+"bunyan@npm:@scaffoldly/bunyan@^1.8.15":
+  version "1.8.15"
+  resolved "https://registry.yarnpkg.com/@scaffoldly/bunyan/-/bunyan-1.8.15.tgz#2149a883e3b2f15371db88121474ef0f2c89b0d4"
+  integrity sha512-n3+J/mEzClb9XJyFHTOOY/wL2Cgg6W6VKYhOCmIpolXDnj54dcOfq2/A++pPmsXxJmq2F/TlN3VbebdtzMBdIA==
+  optionalDependencies:
+    moment "^2.19.3"
+    safe-json-stringify "~1"
+
 cache-base@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/cache-base/-/cache-base-1.0.1.tgz#0a7f46416831c8b662ee36fe4e7c59d76f666ab2"
@@ -1400,6 +1387,19 @@ domexception@^1.0.1:
   integrity sha512-raigMkn7CJNNo6Ihro1fzG7wr3fHuYVytzquZKX5n0yizGsTcYgzdIUwj1X9pK0VvjeihV+XiclP+DjwbsSKug==
   dependencies:
     webidl-conversions "^4.0.2"
+
+"dynamodb@npm:@scaffoldly/dynamodb@1.2.5":
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/@scaffoldly/dynamodb/-/dynamodb-1.2.5.tgz#40c08f817c244a1be5adc96452238578549e7c02"
+  integrity sha512-u50wZDYZSn5erQNi9xrP6rqIvN/kVPKjXAkFGRo5qWcBBcFzep0aZCG6GDYvzRBa70EKDwgveOH1wOGszMIiqg==
+  dependencies:
+    async "1.5.x"
+    aws-sdk "^2.186.x"
+    bunyan "npm:@scaffoldly/bunyan@^1.8.15"
+    joi "10.6.x"
+    lodash "4.x.x"
+    node-uuid "1.4.x"
+    stream-to-promise "~2.2.0"
 
 ecc-jsbn@~0.1.1:
   version "0.1.2"

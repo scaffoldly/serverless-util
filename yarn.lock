@@ -456,14 +456,22 @@
     "@types/yargs" "^15.0.0"
     chalk "^3.0.0"
 
-"@scaffoldly/dynamodb@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@scaffoldly/dynamodb/-/dynamodb-1.2.2.tgz#220bb1217de5433d1b0fbc971d6220acb77c7a01"
-  integrity sha512-6naIa6l0yaQiFkENUFTOYdZWH6GZdkCgvg7nnz1u5Qsiylfod0DaetY5F0uodv0x+BSJlScbBRElPHAo8zoPDQ==
+"@scaffoldly/bunyan@1.8.15":
+  version "1.8.15"
+  resolved "https://registry.yarnpkg.com/@scaffoldly/bunyan/-/bunyan-1.8.15.tgz#2149a883e3b2f15371db88121474ef0f2c89b0d4"
+  integrity sha512-n3+J/mEzClb9XJyFHTOOY/wL2Cgg6W6VKYhOCmIpolXDnj54dcOfq2/A++pPmsXxJmq2F/TlN3VbebdtzMBdIA==
+  optionalDependencies:
+    moment "^2.19.3"
+    safe-json-stringify "~1"
+
+"@scaffoldly/dynamodb@1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@scaffoldly/dynamodb/-/dynamodb-1.2.3.tgz#d627464a08d0dfe1a19741bbe52805de39e95bff"
+  integrity sha512-VmFxLc0C9lGVXjqA+42XzElDshNxqoEiwxOmwmGyP8YDIZr/Fwyf1mnqsFg6/sIJQg30UtzlDKWWm2gcixoF1Q==
   dependencies:
+    "@scaffoldly/bunyan" "1.8.15"
     async "1.5.x"
     aws-sdk "^2.186.x"
-    bunyan-lite "1.0.1"
     joi "10.6.x"
     lodash "4.x.x"
     node-uuid "1.4.x"
@@ -1088,14 +1096,6 @@ builtin-modules@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/builtin-modules/-/builtin-modules-1.1.1.tgz#270f076c5a72c02f5b65a47df94c5fe3a278892f"
   integrity sha1-Jw8HbFpywC9bZaR9+Uxf46J4iS8=
-
-bunyan-lite@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/bunyan-lite/-/bunyan-lite-1.0.1.tgz#3a50545b74b7c601b0593ed13bad4cda73dc31c0"
-  integrity sha1-OlBUW3S3xgGwWT7RO61M2nPcMcA=
-  optionalDependencies:
-    mv-lite "~1"
-    safe-json-stringify "~1"
 
 cache-base@^1.0.1:
   version "1.0.1"
@@ -2751,14 +2751,14 @@ mixin-deep@^1.2.0:
     for-in "^1.0.2"
     is-extendable "^1.0.1"
 
-mkdirp@0.x, mkdirp@^0.5.3, mkdirp@~0.5.1:
+mkdirp@0.x, mkdirp@^0.5.3:
   version "0.5.5"
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-0.5.5.tgz#d91cefd62d1436ca0f41620e251288d420099def"
   integrity sha512-NKmAlESf6jMGym1++R0Ra7wvhV+wFW63FaSOFPwRahvea0gMUcGUhVeAg/0BC0wiv9ih5NYPB1Wn1UEI1/L+xQ==
   dependencies:
     minimist "^1.2.5"
 
-moment@^2.29.1:
+moment@^2.19.3, moment@^2.29.1:
   version "2.29.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.1.tgz#b2be769fa31940be9eeea6469c075e35006fa3d3"
   integrity sha512-kHmoybcPV8Sqy59DwNDY3Jefr64lK/by/da0ViFcuA4DH0vQg5Q6Ze5VimxkfQNSC+Mls/Kx53s7TjP1RhFEDQ==
@@ -2772,13 +2772,6 @@ ms@2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
-
-mv-lite@~1:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/mv-lite/-/mv-lite-1.0.0.tgz#a77230409ea00751c847402bbe97c9683a8bb19d"
-  integrity sha1-p3IwQJ6gB1HIR0ArvpfJaDqLsZ0=
-  dependencies:
-    mkdirp "~0.5.1"
 
 nanomatch@^1.2.9:
   version "1.2.13"

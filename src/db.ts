@@ -1,6 +1,6 @@
 import * as dynamo from 'dynamodb';
 import * as Joi from 'joi';
-import AWS from './aws';
+import { AWS, _AWS } from './aws';
 
 const createTableName = (tableName: string, service: string, stage = 'local') => {
   return `${stage}-${service}-${tableName}`;
@@ -18,8 +18,10 @@ export class Table {
     hashKey: string,
     rangeKey?: string,
   ) {
+    let aws = AWS;
     let options = {};
     if (stage === 'local') {
+      aws = _AWS;
       options = {
         region: 'localhost',
         endpoint: 'http://localhost:8100',
@@ -33,7 +35,7 @@ export class Table {
       timestamps: true,
     });
 
-    this.model.config({ dynamodb: new AWS.DynamoDB(options) });
+    this.model.config({ dynamodb: new aws.DynamoDB(options) });
   }
 }
 

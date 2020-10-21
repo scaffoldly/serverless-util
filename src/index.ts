@@ -97,6 +97,6 @@ export const poll = async (fn: any, fnCondition: any, ms = 1000, maxAttempts = 1
 };
 
 export { Table, Joi } from './db';
-export { default as AWS } from './aws';
+export { AWS } from './aws';
 export { GetSecret } from './secrets';
 export { HttpError } from './errors';

@@ -1,7 +1,7 @@
 import { HttpError } from './errors';
-import AWS from './aws';
+import { AWS, _AWS } from './aws';
 
-const secretsmanager = new AWS.SecretsManager();
+let secretsmanager: AWS.SecretsManager;
 
 const cache: any = {};
 
@@ -38,6 +38,11 @@ export const GetSecret = async (name: string, key: string | null, stage = 'local
   const cached = GetSecretFromCache(name, key, stage);
   if (cached) {
     return cached;
+  }
+
+  if (!secretsmanager) {
+    const aws = stage === 'local' ? _AWS : AWS;
+    secretsmanager = new aws.SecretsManager();
   }
 
   try {

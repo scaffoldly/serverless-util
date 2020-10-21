@@ -464,10 +464,10 @@
     moment "^2.19.3"
     safe-json-stringify "~1"
 
-"@scaffoldly/dynamodb@1.2.3":
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/@scaffoldly/dynamodb/-/dynamodb-1.2.3.tgz#d627464a08d0dfe1a19741bbe52805de39e95bff"
-  integrity sha512-VmFxLc0C9lGVXjqA+42XzElDshNxqoEiwxOmwmGyP8YDIZr/Fwyf1mnqsFg6/sIJQg30UtzlDKWWm2gcixoF1Q==
+"@scaffoldly/dynamodb@1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@scaffoldly/dynamodb/-/dynamodb-1.2.4.tgz#3ed03a59f8b944de05676d83c246e6b556bf49f3"
+  integrity sha512-2N4AJaDdbdXqUhP4LjFhtL6wN0j8jGcVLlSzuzkOYJTNoRM/z3YngnKC8eT+LWFS3WYeHowuAoTku0OWfWW5Dg==
   dependencies:
     "@scaffoldly/bunyan" "1.8.15"
     async "1.5.x"

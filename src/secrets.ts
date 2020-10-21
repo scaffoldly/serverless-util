@@ -5,18 +5,17 @@ let secretsmanager: AWS.SecretsManager;
 
 const cache: any = {};
 
-const GetSecretFromEnv = (name: string, key: string | null, stage = 'local') => {
-  const envVar = key ? `${stage}.${name}.${key}` : `${stage}.${name}`;
-  console.log(`Checking local env for ${envVar}`);
-  if (process.env[envVar]) {
-    console.debug(`Found ${envVar} in local env!`);
-    return process.env[`${envVar}`];
+const GetSecretFromEnv = (key: string) => {
+  console.log(`Checking local env for ${key}`);
+  if (process.env[key]) {
+    console.debug(`Found ${key} in local env!`);
+    return process.env[`${key}`];
   }
 
   return null;
 };
 
-const GetSecretFromCache = (name: string, key: string | null, stage = 'local') => {
+const GetSecretFromCache = (name: string, key: string, stage = 'local') => {
   if (!cache[stage]) {
     return null;
   }
@@ -34,7 +33,7 @@ const GetSecretFromCache = (name: string, key: string | null, stage = 'local') =
   return cache[stage][name];
 };
 
-export const GetSecret = async (name: string, key: string | null, stage = 'local') => {
+export const GetSecret = async (name: string, key: string, stage = 'local') => {
   const cached = GetSecretFromCache(name, key, stage);
   if (cached) {
     return cached;
@@ -62,7 +61,7 @@ export const GetSecret = async (name: string, key: string | null, stage = 'local
   } catch (e) {
     console.error(`Error fetching secret: name=${name} stage=${stage} key=${key}: ${e.message}`);
 
-    const envVal = GetSecretFromEnv(name, key, stage);
+    const envVal = GetSecretFromEnv(key);
     if (envVal) {
       return envVal;
     }

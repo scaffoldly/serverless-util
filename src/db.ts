@@ -1,17 +1,18 @@
 import * as dynamo from 'dynamodb';
 import * as Joi from 'joi';
 import { AWS, _AWS } from './aws';
+import { SERVICE_NAME, STAGE } from './constants';
 
-const createTableName = (tableName: string, service: string, stage = 'local') => {
-  return `${stage}-${service}-${tableName}`;
+const createTableName = (tableName: string, serviceName: string, stage: string) => {
+  return `${stage}-${serviceName}-${tableName}`;
 };
 
 export class Table {
   readonly model: typeof dynamo.Model;
   constructor(
     tableName: string,
-    service: string,
-    stage: string,
+    serviceName = SERVICE_NAME,
+    stage = STAGE,
     schema: {
       [key: string]: Joi.AnySchema | { [key: string]: Joi.AnySchema };
     },
@@ -29,7 +30,7 @@ export class Table {
     }
 
     this.model = dynamo.define(tableName, {
-      tableName: createTableName(tableName, service, stage),
+      tableName: createTableName(tableName, serviceName, stage),
       hashKey,
       rangeKey,
       schema,

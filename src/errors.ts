@@ -1,3 +1,5 @@
+import { createHeaders } from './util';
+
 const ALLOWED_STATUS_CODES = [400, 401, 403, 404, 422, 500, 502, 504];
 
 export class HttpError extends Error {
@@ -8,7 +10,7 @@ export class HttpError extends Error {
     let actualStatusCode = statusCode;
 
     // Serverless only supports the above status codes, make sure the status code is in the list, if not set it to 500
-    if (ALLOWED_STATUS_CODES.indexOf(statusCode) !== -1) {
+    if (ALLOWED_STATUS_CODES.indexOf(statusCode) === -1) {
       actualMessage = `${actualMessage} (Original Status Code was: ${statusCode})`;
       actualStatusCode = 500;
     }
@@ -22,9 +24,10 @@ export class HttpError extends Error {
     }
   }
 
-  response() {
+  response(event: any) {
     return {
       statusCode: this.statusCode,
+      headers: createHeaders(event),
       body: JSON.stringify({ message: this.message }),
     };
   }

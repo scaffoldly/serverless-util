@@ -1,5 +1,6 @@
 import { HttpError } from './errors';
 import { AWS, _AWS } from './aws';
+import { SERVICE_NAME, STAGE } from './constants';
 
 let secretsmanager: AWS.SecretsManager;
 
@@ -15,26 +16,26 @@ const GetSecretFromEnv = (key: string) => {
   return null;
 };
 
-const GetSecretFromCache = (name: string, key: string, stage = 'local') => {
+const GetSecretFromCache = (key: string, serviceName: string, stage: string) => {
   if (!cache[stage]) {
     return null;
   }
 
-  if (!cache[stage][name]) {
+  if (!cache[stage][serviceName]) {
     return null;
   }
 
-  console.log(`Fetching secret from cache: name=${name} stage=${stage} key=${key}`);
+  console.log(`Fetching secret from cache: key=${key}, serviceName=${serviceName}, stage=${stage}`);
 
   if (key) {
-    return cache[stage][name][key];
+    return cache[stage][serviceName][key];
   }
 
-  return cache[stage][name];
+  return cache[stage][serviceName];
 };
 
-export const GetSecret = async (name: string, key: string, stage = 'local') => {
-  const cached = GetSecretFromCache(name, key, stage);
+export const GetSecret = async (key: string, serviceName = SERVICE_NAME, stage = STAGE) => {
+  const cached = GetSecretFromCache(key, serviceName, stage);
   if (cached) {
     return cached;
   }
@@ -44,28 +45,26 @@ export const GetSecret = async (name: string, key: string, stage = 'local') => {
     secretsmanager = new aws.SecretsManager();
   }
 
+  if (stage === 'local') {
+    return GetSecretFromEnv(key);
+  }
+
   try {
     const secretResponse = await secretsmanager
       .getSecretValue({
-        SecretId: `lambda/${stage}/${name}`,
+        SecretId: `lambda/${stage}/${serviceName}`,
       })
       .promise();
 
     if (!cache[stage]) {
       cache[stage] = {};
     }
-    cache[stage][name] = JSON.parse(secretResponse.SecretString!);
-    console.log(`Added secrets to cache: name=${name} stage=${stage}`);
+    cache[stage][serviceName] = JSON.parse(secretResponse.SecretString!);
+    console.log(`Added secrets to cache: serviceName=${serviceName} stage=${stage}`);
 
-    return GetSecretFromCache(name, key, stage);
+    return GetSecretFromCache(key, serviceName, stage);
   } catch (e) {
-    console.error(`Error fetching secret: name=${name} stage=${stage} key=${key}: ${e.message}`);
-
-    const envVal = GetSecretFromEnv(key);
-    if (envVal) {
-      return envVal;
-    }
-
-    throw new HttpError(500, `Error fetching secret: ${e.message}`);
+    console.error(`Error fetching secret: key=${key} serviceName=${serviceName} stage=${stage}`, e);
+    throw new Error(`Error fetching secret: ${e.message}`);
   }
 };

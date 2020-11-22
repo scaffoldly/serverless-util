@@ -8,11 +8,9 @@ export const createHeaders = (event: any) => {
       'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent';
     headers['Access-Control-Allow-Methods'] = `OPTIONS,${event.httpMethod}`;
     if (ALLOWED_ORIGINS) {
-      const origin = ALLOWED_ORIGINS.split(',').find(allowedOrigin =>
-        event.headers.origin.endsWith(`://${allowedOrigin}`),
-      );
+      const origin = ALLOWED_ORIGINS.split(',').find(allowedOrigin => allowedOrigin === event.headers.origin);
       if (origin) {
-        headers['Access-Control-Allow-Origin'] = event.headers.origin;
+        headers['Access-Control-Allow-Origin'] = origin;
       }
     } else {
       headers['Access-Control-Allow-Origin'] = '*';

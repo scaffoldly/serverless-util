@@ -13,7 +13,7 @@ jobs:
           node-version: '12'
       - run: yarn
       - run: yarn prepublishOnly
-      - uses: 'phips28/gh-action-bump-version@v7.1.0'
+      - uses: 'scaffoldly/github-action-bump-version-npm@master'
         with:
           tag-prefix: ''
         env:

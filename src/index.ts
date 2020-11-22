@@ -24,7 +24,7 @@ export const handleError = (event: any, error: Error) => {
     return error.response(event);
   }
 
-  throw error;
+  return new HttpError(500, error.message, error).response(event);
 };
 
 export const requiredParameters = (obj: any, parameterNames: string[]) => {

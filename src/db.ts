@@ -7,6 +7,13 @@ const createTableName = (tableName: string, serviceName: string, stage: string) 
   return `${stage}-${serviceName}-${tableName}`;
 };
 
+export interface TableIndex {
+  hashKey: string;
+  rangeKey?: string;
+  name: string;
+  type: 'local' | 'global';
+}
+
 export class Table {
   readonly model: typeof dynamo.Model;
   constructor(
@@ -18,6 +25,7 @@ export class Table {
     },
     hashKey: string,
     rangeKey?: string,
+    indexes?: TableIndex[],
   ) {
     let aws = AWS;
     let options = {};
@@ -34,6 +42,7 @@ export class Table {
       hashKey,
       rangeKey,
       schema,
+      indexes,
       timestamps: true,
     });
 

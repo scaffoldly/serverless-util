@@ -123,7 +123,7 @@ export const processList = (list: any[], fn: any, args: any) => {
   return promises;
 };
 
-export { Table, Joi } from './db';
+export { Table, TableIndex, Joi } from './db';
 export { AWS } from './aws';
 export { GetSecret } from './secrets';
 export { HttpError } from './errors';

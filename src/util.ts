@@ -5,6 +5,7 @@ export const createHeaders = (event: any) => {
 
   headers['Access-Control-Allow-Headers'] =
     'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent';
+  headers['Access-Control-Allow-Credentials	'] = 'true';
 
   if (event && event.httpMethod) {
     headers['Access-Control-Allow-Methods'] = event.httpMethod;

@@ -125,6 +125,6 @@ export const processList = (list: any[], fn: any, args: any) => {
 
 export { Table, TableIndex, Joi } from './db';
 export { AWS } from './aws';
-export { GetSecret } from './secrets';
+export { GetSecret, SetSecret } from './secrets';
 export { HttpError } from './errors';
 export { SERVICE_NAME, STAGE } from './constants';

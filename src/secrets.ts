@@ -68,3 +68,53 @@ export const GetSecret = async (key: string, serviceName = SERVICE_NAME, stage =
     throw new Error(`Error fetching secret: ${e.message}`);
   }
 };
+
+export const SetSecret = async (key: string, value: string, base64Encode = false) => {
+  const _value = base64Encode ? Buffer.from(value, 'utf8').toString('base64') : value;
+
+  if (STAGE === 'local') {
+    if (!cache[STAGE]) {
+      cache[STAGE] = {};
+    }
+
+    if (!cache[STAGE][SERVICE_NAME]) {
+      cache[STAGE][SERVICE_NAME] = {};
+    }
+
+    cache[STAGE][SERVICE_NAME][key] = _value;
+
+    console.log(`Saved secret to cache: key=${key} serviceName=${SERVICE_NAME} stage=${STAGE}`);
+
+    return _value;
+  }
+
+  try {
+    const secretResponse = await secretsmanager
+      .getSecretValue({
+        SecretId: `lambda/${STAGE}/${SERVICE_NAME}`,
+      })
+      .promise();
+
+    let secretString = secretResponse.SecretString;
+    if (!secretString) {
+      console.warn('No secrets set in Secrets Manager, generating an empty object');
+      secretString = '{}';
+    }
+
+    const secrets = JSON.parse(secretString);
+
+    secrets[key] = _value;
+
+    await secretsmanager
+      .putSecretValue({ SecretId: `lambda/${STAGE}/${SERVICE_NAME}`, SecretString: JSON.stringify(secrets) })
+      .promise();
+
+    console.log(`Added secret to Secrets Manager: key=${key} serviceName=${SERVICE_NAME} stage=${STAGE}`);
+
+    const ret = await GetSecret(key, SERVICE_NAME, STAGE);
+    return ret;
+  } catch (e) {
+    console.error(`Error setting secret: key=${key} serviceName=${SERVICE_NAME} stage=${STAGE}`, e);
+    throw new Error(`Error fetching secret: ${e.message}`);
+  }
+};

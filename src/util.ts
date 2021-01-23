@@ -11,14 +11,21 @@ export const createHeaders = (event: any) => {
     headers['Access-Control-Allow-Methods'] = event.httpMethod;
   }
 
-  if (!ALLOWED_ORIGINS) {
-    headers['Access-Control-Allow-Origin'] = '*';
-  }
+  if (event && event.headers) {
+    const { origin } = event.headers;
 
-  if (ALLOWED_ORIGINS && event && event.headers.origin) {
-    const origin = ALLOWED_ORIGINS.split(',').find(allowedOrigin => allowedOrigin === event.headers.origin);
-    if (origin) {
+    if (!ALLOWED_ORIGINS && !origin) {
+      // No restriction on allowed origins, and orgin absent (e.g. mobile / backend )
+      headers['Access-Control-Allow-Origin'] = '*';
+    } else if (!ALLOWED_ORIGINS && origin) {
+      // No restriction on allowed origins, and orgin present (e.g. browser)
       headers['Access-Control-Allow-Origin'] = origin;
+    } else if (ALLOWED_ORIGINS && origin) {
+      // Restriction on allowed origins, and orgin present (e.g. browser)
+      const found = ALLOWED_ORIGINS.split(',').find(allowed => allowed === origin);
+      if (found) {
+        headers['Access-Control-Allow-Origin'] = origin;
+      }
     }
   }
 

@@ -47,7 +47,7 @@ export const requiredParameters = (obj: any, parameterNames: string[]) => {
 
   parameterNames.forEach(key => {
     if (!json[key]) {
-      throw new HttpError(422, `Missing required parameters: ${key}`);
+      throw new HttpError(400, `Missing required parameters: ${key}`);
     }
 
     params[key] = json[key];

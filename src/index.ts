@@ -18,7 +18,7 @@ export const handleSuccess = (event: any, body = {}, statusCode = 200) => {
   };
 };
 
-export const handleError = (event: any, error: Error) => {
+export const handleError = (event: any, error: any) => {
   console.error('Handling error', error);
 
   let status = 500;
@@ -26,10 +26,8 @@ export const handleError = (event: any, error: Error) => {
     return error.response(event);
   }
 
-  if (error instanceof AWSError) {
-    if (error.code === 'ConditionalCheckFailedException') {
-      status = 409;
-    }
+  if (error && error.code === 'ConditionalCheckFailedException') {
+    status = 409;
   }
 
   return new HttpError(status, error.message, error).response(event);

@@ -4,6 +4,7 @@ import { AWSXRay } from './aws';
 
 import http = require('http');
 import { createHeaders } from './util';
+import { AWSError } from 'aws-sdk';
 
 if (STAGE !== 'local') {
   AWSXRay.captureHTTPsGlobal(http, true);
@@ -20,11 +21,18 @@ export const handleSuccess = (event: any, body = {}, statusCode = 200) => {
 export const handleError = (event: any, error: Error) => {
   console.error('Handling error', error);
 
+  let status = 500;
   if (error instanceof HttpError) {
     return error.response(event);
   }
 
-  return new HttpError(500, error.message, error).response(event);
+  if (error instanceof AWSError) {
+    if (error.code === 'ConditionalCheckFailedException') {
+      status = 409;
+    }
+  }
+
+  return new HttpError(status, error.message, error).response(event);
 };
 
 export const requiredParameters = (obj: any, parameterNames: string[]) => {

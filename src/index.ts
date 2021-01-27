@@ -26,8 +26,10 @@ export const handleError = (event: any, error: any) => {
     return error.response(event);
   }
 
-  if (error && error.code === 'ConditionalCheckFailedException') {
-    status = 409;
+  // AWS Errors
+  if (error && error.code && error.statusCode) {
+    console.log('Error appears to be an AWS SDK Error');
+    status = error.statusCode;
   }
 
   return new HttpError(status, error.message, error).response(event);

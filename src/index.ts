@@ -64,7 +64,11 @@ export const requiredParameters = (obj: any, parameterNames: string[]) => {
   return params;
 };
 
-export const optionalParameters = (obj: any, parameterNames: string[], requreAtLeastOne = false) => {
+export const optionalParameters = (
+  obj: any,
+  parameterNames: string[],
+  options: { requreAtLeastOne: false; allowEmptyStrings: false },
+) => {
   const params: any = {};
 
   if (!obj) {
@@ -83,12 +87,12 @@ export const optionalParameters = (obj: any, parameterNames: string[], requreAtL
   }
 
   parameterNames.forEach(key => {
-    if (json[key]) {
+    if (json[key] || (options.allowEmptyStrings && json[key] === '')) {
       params[key] = json[key];
     }
   });
 
-  if (requreAtLeastOne && Object.keys(params).length === 0) {
+  if (options.requreAtLeastOne && Object.keys(params).length === 0) {
     throw new HttpError(400, `No search parameters were provided, expected one of ${parameterNames}`);
   }
 

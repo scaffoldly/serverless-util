@@ -67,7 +67,7 @@ export const requiredParameters = (obj: any, parameterNames: string[]) => {
 export const optionalParameters = (
   obj: any,
   parameterNames: string[],
-  options: { requreAtLeastOne: false; allowEmptyStrings: false },
+  options = { requreAtLeastOne: false, allowEmptyStrings: false },
 ) => {
   const params: any = {};
 

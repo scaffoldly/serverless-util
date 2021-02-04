@@ -9,20 +9,20 @@ if (STAGE !== 'local') {
   AWSXRay.captureHTTPsGlobal(http, true);
 }
 
-export const handleSuccess = (event: any, body = {}, headers = {}, statusCode = 200) => {
+export const handleSuccess = (event: any, body = {}, options = { statusCode: 200, headers: {} }) => {
   return {
-    statusCode,
-    headers: createHeaders(event, headers),
-    body: JSON.stringify(body),
+    statusCode: options && options.statusCode ? options.statusCode : 200,
+    headers: createHeaders(event, options && options.headers ? options.headers : {}),
+    body: body ? JSON.stringify(body) : undefined,
   };
 };
 
-export const handleError = (event: any, error: any, headers = {}, statusCode = 500) => {
+export const handleError = (event: any, error: any, options = { statusCode: 500, headers: {} }) => {
   console.error('Handling error', error);
 
-  let status = statusCode;
+  let status = options && options.statusCode ? options.statusCode : 500;
   if (error instanceof HttpError) {
-    return error.response(event, headers);
+    return error.response(event, options && options.headers ? options.headers : {});
   }
 
   // Generic HTTP errors (e.g. AWS Errors)
@@ -30,7 +30,10 @@ export const handleError = (event: any, error: any, headers = {}, statusCode = 5
     status = error.statusCode;
   }
 
-  return new HttpError(status, error.message || JSON.stringify(error), { reason: error }).response(event, headers);
+  return new HttpError(status, error.message || JSON.stringify(error), { reason: error }).response(
+    event,
+    options && options.headers ? options.headers : {},
+  );
 };
 
 export const requiredParameters = (obj: any, parameterNames: string[]) => {

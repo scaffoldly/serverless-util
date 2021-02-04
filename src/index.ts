@@ -4,7 +4,6 @@ import { AWSXRay } from './aws';
 
 import http = require('http');
 import { createHeaders } from './util';
-import { AWSError } from 'aws-sdk';
 
 if (STAGE !== 'local') {
   AWSXRay.captureHTTPsGlobal(http, true);

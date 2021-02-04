@@ -6,7 +6,7 @@ export class HttpError extends Error {
   statusCode: number;
   context: { [key: string]: any };
 
-  constructor(statusCode: number, message: string, context = <{ [key: string]: any }>{}) {
+  constructor(statusCode: number, message: string, context = {} as { [key: string]: any }) {
     let actualStatusCode = statusCode;
     let actualName = `HTTP Error ${statusCode}`;
 
@@ -47,6 +47,6 @@ export class HttpError extends Error {
         acc[key] = value;
       }
       return acc;
-    }, <{ [key: string]: any }>{});
+    }, {} as { [key: string]: any });
   }
 }

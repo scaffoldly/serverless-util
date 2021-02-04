@@ -1,6 +1,10 @@
 import { ALLOWED_ORIGINS } from './constants';
 
 export const createHeaders = (event: any, headers = {} as { [key: string]: string }) => {
+  headers['Access-Control-Expose-Headers'] = headers['Access-Control-Expose-Headers']
+    ? headers['Access-Control-Expose-Headers']
+    : Object.keys(headers).join(',');
+
   headers['Access-Control-Allow-Headers'] = headers['Access-Control-Allow-Headers']
     ? headers['Access-Control-Allow-Headers']
     : 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent';

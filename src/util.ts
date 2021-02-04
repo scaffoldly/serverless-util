@@ -1,17 +1,21 @@
 import { ALLOWED_ORIGINS } from './constants';
 
-export const createHeaders = (event: any) => {
-  const headers: { [key: string]: string } = {};
+export const createHeaders = (event: any, headers = <{ [key: string]: string }>{}) => {
+  headers['Access-Control-Allow-Headers'] = headers['Access-Control-Allow-Headers']
+    ? headers['Access-Control-Allow-Headers']
+    : 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent';
 
-  headers['Access-Control-Allow-Headers'] =
-    'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Amz-User-Agent';
-  headers['Access-Control-Allow-Credentials'] = 'true';
+  headers['Access-Control-Allow-Credentials'] = headers['Access-Control-Allow-Credentials']
+    ? headers['Access-Control-Allow-Credentials']
+    : 'true';
 
   if (event && event.httpMethod) {
-    headers['Access-Control-Allow-Methods'] = event.httpMethod;
+    headers['Access-Control-Allow-Methods'] = headers['Access-Control-Allow-Methods']
+      ? headers['Access-Control-Allow-Methods']
+      : event.httpMethod;
   }
 
-  if (event && event.headers) {
+  if (event && event.headers && !headers['Access-Control-Allow-Origin']) {
     const { origin } = event.headers;
 
     if (!ALLOWED_ORIGINS && !origin) {

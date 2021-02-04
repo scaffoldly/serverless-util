@@ -10,29 +10,28 @@ if (STAGE !== 'local') {
   AWSXRay.captureHTTPsGlobal(http, true);
 }
 
-export const handleSuccess = (event: any, body = {}, statusCode = 200) => {
+export const handleSuccess = (event: any, body = {}, headers = {}, statusCode = 200) => {
   return {
     statusCode,
-    headers: createHeaders(event),
+    headers: createHeaders(event, headers),
     body: JSON.stringify(body),
   };
 };
 
-export const handleError = (event: any, error: any) => {
+export const handleError = (event: any, error: any, headers = {}, statusCode = 500) => {
   console.error('Handling error', error);
 
-  let status = 500;
+  let status = statusCode;
   if (error instanceof HttpError) {
-    return error.response(event);
+    return error.response(event, headers);
   }
 
-  // AWS Errors
-  if (error && error.code && error.statusCode) {
-    console.log('Error appears to be an AWS SDK Error');
+  // Generic HTTP errors (e.g. AWS Errors)
+  if (error && error.statusCode) {
     status = error.statusCode;
   }
 
-  return new HttpError(status, error.message, error).response(event);
+  return new HttpError(status, error.message || JSON.stringify(error), { reason: error }).response(event, headers);
 };
 
 export const requiredParameters = (obj: any, parameterNames: string[]) => {

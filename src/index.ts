@@ -17,9 +17,11 @@ export const handleSuccess = (event: any, body = {}, options = { statusCode: 200
   };
 };
 
-export const handleError = (event: any, error: any, options = { statusCode: 500, headers: {} }) => {
-  console.error('Handling error', error);
-
+export const handleError = (
+  event: any,
+  error: any,
+  options = { statusCode: 500, headers: {}, context: {} as { [key: string]: any } },
+) => {
   let status = options && options.statusCode ? options.statusCode : 500;
   if (error instanceof HttpError) {
     return error.response(event, options && options.headers ? options.headers : {});
@@ -30,7 +32,9 @@ export const handleError = (event: any, error: any, options = { statusCode: 500,
     status = error.statusCode;
   }
 
-  return new HttpError(status, error.message || JSON.stringify(error), { reason: error }).response(
+  const context = options && options.context ? options.context : {};
+
+  return new HttpError(status, error.message || JSON.stringify(error), { reason: error, ...context }).response(
     event,
     options && options.headers ? options.headers : {},
   );

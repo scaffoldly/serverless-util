@@ -26,7 +26,7 @@ export class HttpError extends Error {
     const response = {
       statusCode: this.statusCode,
       headers: createHeaders(event, headers),
-      body: JSON.stringify({ name: this.name, error: this.message, context: this.createContext() }),
+      body: JSON.stringify({ error: this.name, message: this.message, context: this.createContext() }),
     };
 
     console.error('Error response:', JSON.stringify(response, null, 2));

@@ -34,10 +34,10 @@ export const handleError = (
 
   const context = options && options.context ? options.context : {};
 
-  return new HttpError(status, error.message || JSON.stringify(error), { reason: error, ...context }).response(
-    event,
-    options && options.headers ? options.headers : {},
-  );
+  return new HttpError(status, error.message || (typeof error === 'string' ? error : JSON.stringify(error)), {
+    reason: error,
+    ...context,
+  }).response(event, options && options.headers ? options.headers : {});
 };
 
 export const requiredParameters = (obj: any, parameterNames: string[]) => {

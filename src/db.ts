@@ -1,3 +1,6 @@
+import { DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
+import { AttributeMap, DocumentClient } from 'aws-sdk/clients/dynamodb';
+import DynamoDB = require('aws-sdk/clients/dynamodb');
 import * as dynamo from 'dynamodb';
 import * as Joi from 'joi';
 import { AWS, _AWS } from './aws';
@@ -16,6 +19,10 @@ export interface TableIndex {
 
 export class Table {
   readonly model: typeof dynamo.Model;
+  private tableName: string;
+  private serviceName: string;
+  private stage: string;
+
   constructor(
     tableName: string,
     serviceName = SERVICE_NAME,
@@ -37,6 +44,10 @@ export class Table {
       };
     }
 
+    this.tableName = tableName;
+    this.serviceName = serviceName;
+    this.stage = stage;
+
     this.model = dynamo.define(tableName, {
       tableName: createTableName(tableName, serviceName, stage),
       hashKey,
@@ -48,6 +59,48 @@ export class Table {
 
     this.model.config({ dynamodb: new aws.DynamoDB(options) });
   }
+
+  matches(fullTableName: string) {
+    return fullTableName === createTableName(this.tableName, this.serviceName, this.stage);
+  }
+
+  unmarshallDynamoDBStreamEvent = (
+    event: DynamoDBStreamEvent,
+    eventType: 'INSERT' | 'MODIFY' | 'REMOVE',
+    recordType: 'NEW' | 'OLD',
+  ) => {
+    const result = event.Records.reduce(
+      (acc, record) => {
+        if (!record.eventSourceARN || !record.dynamodb) {
+          return acc;
+        }
+
+        if (record.eventName !== eventType) {
+          return acc;
+        }
+
+        const fullTableNmae = record.eventSourceARN.split('/')[1];
+        if (!this.matches(fullTableNmae)) {
+          return acc;
+        }
+
+        if (recordType === 'NEW' && record.dynamodb.NewImage) {
+          acc.items.push(DynamoDB.Converter.unmarshall(record.dynamodb.NewImage));
+          delete record.dynamodb.NewImage;
+          acc.context.push(record);
+        }
+        if (recordType === 'OLD' && record.dynamodb.OldImage) {
+          acc.items.push(DynamoDB.Converter.unmarshall(record.dynamodb.OldImage));
+          delete record.dynamodb.OldImage;
+          acc.context.push(record);
+        }
+
+        return acc;
+      },
+      { items: [] as AttributeMap[], context: [] as DynamoDBRecord[], eventType, recordType },
+    );
+    return result;
+  };
 }
 
 export { Joi };

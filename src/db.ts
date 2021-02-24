@@ -79,8 +79,8 @@ export class Table {
           return acc;
         }
 
-        const fullTableNmae = record.eventSourceARN.split('/')[1];
-        if (!this.matches(fullTableNmae)) {
+        const fullTableName = record.eventSourceARN.split('/')[1];
+        if (!this.matches(fullTableName)) {
           return acc;
         }
 

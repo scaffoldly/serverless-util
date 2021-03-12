@@ -30,7 +30,7 @@ export const createHeaders = (event: any, headers = {} as { [key: string]: strin
       headers['Access-Control-Allow-Origin'] = origin;
     } else if (ALLOWED_ORIGINS && origin) {
       // Restriction on allowed origins, and orgin present (e.g. browser)
-      const found = ALLOWED_ORIGINS.split(',').find(allowed => allowed === origin);
+      const found = ALLOWED_ORIGINS.split(',').find((allowed) => allowed === origin);
       if (found) {
         headers['Access-Control-Allow-Origin'] = origin;
       }

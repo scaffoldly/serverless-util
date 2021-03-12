@@ -10,8 +10,9 @@ import {
   ExtractedAuthorizations,
 } from './types';
 
-import http = require('http');
 import { createHeaders } from './util';
+
+import * as http from 'http';
 
 if (STAGE !== 'local') {
   AWSXRay.captureHTTPsGlobal(http, true);
@@ -35,7 +36,9 @@ export const extractAuthorization = (event: any, options?: ExtractAuthorizationO
         token: token,
         context: event.requestContext.authorizer,
       };
-    } catch (e) {}
+    } catch (e) {
+      // Skip
+    }
   }
 
   if (options?.throwError && !extracted.apikey && !extracted.jwt) {
@@ -90,7 +93,7 @@ export const requiredParameters = (obj: any, parameterNames: string[]) => {
     json = obj;
   }
 
-  parameterNames.forEach(key => {
+  parameterNames.forEach((key) => {
     if (!json[key]) {
       throw new HttpError(400, `Missing required parameters: ${key}`);
     }
@@ -119,7 +122,7 @@ export const optionalParameters = (obj: any, parameterNames: string[], options?:
     json = obj;
   }
 
-  parameterNames.forEach(key => {
+  parameterNames.forEach((key) => {
     if (json[key] || (options && options.allowEmptyStrings && json[key] === '')) {
       params[key] = json[key];
     }

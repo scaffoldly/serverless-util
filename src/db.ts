@@ -1,6 +1,7 @@
 import { DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
+import * as DynamoDB from 'aws-sdk/clients/dynamodb';
 import { AttributeMap, DocumentClient } from 'aws-sdk/clients/dynamodb';
-import DynamoDB = require('aws-sdk/clients/dynamodb');
+
 import * as dynamo from 'dynamodb';
 import * as Joi from 'joi';
 import { AWS, _AWS } from './aws';

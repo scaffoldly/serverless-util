@@ -55,10 +55,9 @@
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "@scaffoldly/dynamodb": "^1.3.1",
     "aws-sdk": "^2.682.0",
     "aws-xray-sdk": "^3.2.0",
-    "dynamodb": "npm:@scaffoldly/dynamodb@1.2.5",
+    "dynamodb": "npm:@scaffoldly/dynamodb@1.3.1",
     "jose": "2",
     "moment": "^2.29.1"
   }

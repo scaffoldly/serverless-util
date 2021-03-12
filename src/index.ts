@@ -1,6 +1,14 @@
 import { HttpError } from './errors';
 import { STAGE } from './constants';
 import { AWSXRay } from './aws';
+import { JWT } from 'jose';
+import {
+  HandleSuccessOptions,
+  HandleErrorOptions,
+  OptionalParametersOptions,
+  ExtractAuthorizationOptions,
+  ExtractedAuthorizations,
+} from './types';
 
 import http = require('http');
 import { createHeaders } from './util';
@@ -9,7 +17,35 @@ if (STAGE !== 'local') {
   AWSXRay.captureHTTPsGlobal(http, true);
 }
 
-export const handleSuccess = (event: any, body = {}, options = { statusCode: 200, headers: {} }) => {
+export const extractAuthorization = (event: any, options?: ExtractAuthorizationOptions): ExtractedAuthorizations => {
+  const extracted: ExtractedAuthorizations = {};
+
+  if (event.requestContext.identity.apiKey && event.headers['X-API-KEY']) {
+    extracted.apikey = {
+      token: event.requestContext.identity.apiKey,
+      context: event.requestContext.identity,
+    };
+  }
+
+  if (event.requestContext.authorizer && event.headers['Authorization']) {
+    try {
+      const token = event.headers['Authorization'].split(' ')[1];
+      JWT.decode(token); // Throws an error if not decodable JWT
+      extracted.jwt = {
+        token: token,
+        context: event.requestContext.authorizer,
+      };
+    } catch (e) {}
+  }
+
+  if (options?.throwError && !extracted.apikey && !extracted.jwt) {
+    throw new HttpError(401, 'Unauthorized');
+  }
+
+  return extracted;
+};
+
+export const handleSuccess = (event: any, body = {}, options?: HandleSuccessOptions) => {
   return {
     statusCode: options && options.statusCode ? options.statusCode : 200,
     headers: createHeaders(event, options && options.headers ? options.headers : {}),
@@ -17,11 +53,7 @@ export const handleSuccess = (event: any, body = {}, options = { statusCode: 200
   };
 };
 
-export const handleError = (
-  event: any,
-  error: any,
-  options = { statusCode: 500, headers: {}, context: {} as { [key: string]: any } },
-) => {
+export const handleError = (event: any, error: any, options?: HandleErrorOptions) => {
   let status = options && options.statusCode ? options.statusCode : 500;
   if (error instanceof HttpError) {
     return error.response(event, options && options.headers ? options.headers : {});
@@ -69,11 +101,7 @@ export const requiredParameters = (obj: any, parameterNames: string[]) => {
   return params;
 };
 
-export const optionalParameters = (
-  obj: any,
-  parameterNames: string[],
-  options = { requreAtLeastOne: false, allowEmptyStrings: false },
-) => {
+export const optionalParameters = (obj: any, parameterNames: string[], options?: OptionalParametersOptions) => {
   const params: any = {};
 
   if (!obj) {
@@ -92,55 +120,19 @@ export const optionalParameters = (
   }
 
   parameterNames.forEach(key => {
-    if (json[key] || (options.allowEmptyStrings && json[key] === '')) {
+    if (json[key] || (options && options.allowEmptyStrings && json[key] === '')) {
       params[key] = json[key];
     }
   });
 
-  if (options.requreAtLeastOne && Object.keys(params).length === 0) {
-    throw new HttpError(400, `No search parameters were provided, expected one of ${parameterNames}`);
+  if (options && options.requreAtLeastOne && Object.keys(params).length === 0) {
+    throw new HttpError(400, `Missing one of the required parameters: expected one of ${parameterNames}`);
   }
 
   return params;
 };
 
-const wait = (ms: number) => {
-  return new Promise(resolve => {
-    console.log(`waiting ${ms} ms...`);
-    setTimeout(resolve, ms);
-  });
-};
-
-export const poll = async (fn: any, fnCondition: any, ms = 1000, maxAttempts = 10) => {
-  await wait(ms);
-  let result = await fn();
-  let attempt = 1;
-  while (attempt < maxAttempts && fnCondition(result)) {
-    // eslint-disable-next-line no-await-in-loop
-    result = await fn();
-    attempt += 1;
-  }
-  return result;
-};
-
-export const processList = (list: any[], fn: any, args: any) => {
-  const promises: Promise<any>[] = [];
-  list.forEach(item => {
-    promises.push(
-      args
-        ? fn.call(undefined, item, ...args).catch((e: Error) => {
-            console.log('Error processing item: ', e);
-          })
-        : fn.call(undefined, item).catch((e: Error) => {
-            console.log('Error processing item: ', e);
-          }),
-    );
-  });
-
-  return promises;
-};
-
-export { Table, TableIndex, Joi } from './db';
+export { Table, TableIndex, TableUuid, Joi } from './db';
 export { AWS } from './aws';
 export { GetSecret, SetSecret } from './secrets';
 export { HttpError } from './errors';

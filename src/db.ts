@@ -1,6 +1,6 @@
 import { DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
 import * as DynamoDB from 'aws-sdk/clients/dynamodb';
-import { AttributeMap, DocumentClient } from 'aws-sdk/clients/dynamodb';
+import { AttributeMap } from 'aws-sdk/clients/dynamodb';
 
 import * as dynamo from 'dynamodb';
 import * as Joi from 'joi';
@@ -11,7 +11,7 @@ const createTableName = (tableName: string, serviceName: string, stage: string) 
   return `${stage}-${serviceName}-${tableName}`;
 };
 
-export const TableUuid = () => {
+export const TableUuid = (): Joi.AnySchema => {
   return dynamo.types.uuid();
 };
 
@@ -27,12 +27,12 @@ export class Table {
   private tableName: string;
   private serviceName: string;
   private stage: string;
-  // private schema: Joi.ObjectSchema<any>;
 
   constructor(
     tableName: string,
-    serviceName = SERVICE_NAME,
-    stage = STAGE,
+    serviceName: string = SERVICE_NAME,
+    stage: string = STAGE,
+    schema: { [key: string]: Joi.AnySchema },
     hashKey: string,
     rangeKey?: string,
     indexes?: TableIndex[], // TODO VERIFY THIS WORKS
@@ -51,59 +51,19 @@ export class Table {
     this.serviceName = serviceName;
     this.stage = stage;
 
-    // const schema = { id: Joi.string() };
-    // if (rangeKey) {
-    //   schema[rangeKey] = Joi.any().required();
-    // }
-    // this.schema = Joi.object(schema).unknown(true);
-    // TODO Indexes
-
-    // console.log('!!!! validating schema');
-    // try {
-    //   console.log('!!! schema', schema);
-    //   const foo = Joi.object().keys(schema);
-    //   console.log('!!!! foo', foo);
-    // } catch (e) {
-    //   console.error('!!!! error', e);
-    // }
-
-    try {
-      // this.model = dynamo.define(tableName, {
-      //   tableName: createTableName(tableName, serviceName, stage),
-      //   hashKey: 'id',
-      //   // rangeKey,
-      //   schema: { id: Joi.string() },
-      //   // indexes,
-      //   // timestamps: true,
-      // });
-      this.model = dynamo.define('example-Account', {
-        hashKey: 'name',
-        rangeKey: 'email',
-        schema: {
-          name: Joi.string(),
-          email: Joi.string(),
-          age: Joi.number(),
-        },
-        indexes: [{ hashKey: 'name', rangeKey: 'age', type: 'local', name: 'NameAgeIndex' }],
-      });
-    } catch (e) {
-      console.log('!!!! error', e);
-      throw e;
-    }
-
-    // this.model = dynamo.define(tableName, {
-    //   tableName: createTableName(tableName, serviceName, stage),
-    //   hashKey,
-    //   // rangeKey,
-    //   schema: { id: Joi.string().required() },
-    //   // indexes,
-    //   // timestamps: true,
-    // });
+    this.model = dynamo.define(tableName, {
+      tableName: createTableName(tableName, serviceName, stage),
+      hashKey,
+      rangeKey,
+      schema,
+      indexes,
+      timestamps: true,
+    });
 
     this.model.config({ dynamodb: new aws.DynamoDB(options) });
   }
 
-  matches(fullTableName: string) {
+  matches(fullTableName: string): boolean {
     return fullTableName === createTableName(this.tableName, this.serviceName, this.stage);
   }
 
@@ -111,7 +71,12 @@ export class Table {
     event: DynamoDBStreamEvent,
     eventType: 'INSERT' | 'MODIFY' | 'REMOVE',
     recordType: 'NEW' | 'OLD',
-  ) => {
+  ): {
+    items: DynamoDB.AttributeMap[];
+    context: DynamoDBRecord[];
+    eventType: 'INSERT' | 'MODIFY' | 'REMOVE';
+    recordType: 'NEW' | 'OLD';
+  } => {
     const result = event.Records.reduce(
       (acc, record) => {
         if (!record.eventSourceARN || !record.dynamodb) {

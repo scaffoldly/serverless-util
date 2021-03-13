@@ -35,7 +35,7 @@ export class Table {
     schema: { [key: string]: Joi.AnySchema },
     hashKey: string,
     rangeKey?: string,
-    indexes?: TableIndex[], // TODO VERIFY THIS WORKS
+    indexes?: TableIndex[],
   ) {
     let aws = AWS;
     let options = {};

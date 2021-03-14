@@ -1,6 +1,5 @@
 import { DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
 import * as DynamoDB from 'aws-sdk/clients/dynamodb';
-import { AttributeMap } from 'aws-sdk/clients/dynamodb';
 
 import * as dynamo from 'dynamodb';
 import * as Joi from 'joi';
@@ -105,7 +104,7 @@ export class Table {
 
         return acc;
       },
-      { items: [] as AttributeMap[], context: [] as DynamoDBRecord[], eventType, recordType },
+      { items: [] as { [key: string]: any }[], context: [] as DynamoDBRecord[], eventType, recordType },
     );
     return result;
   };

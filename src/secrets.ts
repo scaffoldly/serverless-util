@@ -59,7 +59,14 @@ export const GetSecret = async (key: string, serviceName = SERVICE_NAME, stage =
     if (!cache[stage]) {
       cache[stage] = {};
     }
-    cache[stage][serviceName] = JSON.parse(secretResponse.SecretString!);
+
+    const parsed = JSON.parse(secretResponse.SecretString!);
+    if (!parsed[key]) {
+      console.warn(`Key not in secrets manager, skipping cache: key=${key} serviceName=${serviceName} stage=${stage}`);
+      return null;
+    }
+
+    cache[stage][serviceName] = parsed;
     console.log(`Added secrets to cache: serviceName=${serviceName} stage=${stage}`);
 
     return GetSecretFromCache(key, serviceName, stage);

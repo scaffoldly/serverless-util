@@ -2,7 +2,7 @@ name: Commit to Master
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   bump-version:
     runs-on: ubuntu-latest

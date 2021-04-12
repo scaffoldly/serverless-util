@@ -6,8 +6,8 @@ import * as Joi from 'joi';
 import { AWS, _AWS } from './aws';
 import { SERVICE_NAME, STAGE } from './constants';
 
-const createTableName = (tableName: string, serviceName: string, stage: string) => {
-  return `${stage}-${serviceName}-${tableName}`;
+const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
+  return `${stage}-${serviceName}${tableSuffix ? `-${tableSuffix}` : ''}`;
 };
 
 export const TableUuid = (): Joi.AnySchema => {
@@ -28,7 +28,7 @@ export class Table {
   private stage: string;
 
   constructor(
-    tableName: string,
+    tableSuffix = '',
     serviceName: string = SERVICE_NAME,
     stage: string = STAGE,
     schema: { [key: string]: Joi.AnySchema },
@@ -46,12 +46,12 @@ export class Table {
       };
     }
 
-    this.tableName = tableName;
+    this.tableName = createTableName(tableSuffix, serviceName, stage);
     this.serviceName = serviceName;
     this.stage = stage;
 
-    this.model = dynamo.define(tableName, {
-      tableName: createTableName(tableName, serviceName, stage),
+    this.model = dynamo.define(this.tableName, {
+      tableName: this.tableName,
       hashKey,
       rangeKey,
       schema,

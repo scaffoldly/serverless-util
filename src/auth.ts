@@ -56,23 +56,23 @@ export const GetIdentity = async (event: AuthorizedEvent, context: Context): Pro
     throw new HttpError(401, 'Unauthorized', { message: 'Authorization header is missing' });
   }
 
-  const token = authorization.split(' ')[1];
-  if (!token) {
+  const jwt = authorization.split(' ')[1];
+  if (!jwt) {
     throw new HttpError(400, 'Invalid authorization header format');
   }
 
-  const decoded = JWT.decode(token) as AuthContext;
+  const decoded = JWT.decode(jwt) as AuthContext;
   if (!decoded) {
-    throw new HttpError(400, 'Unable to decode authorization header token');
+    throw new HttpError(400, 'Unable to decode authorization header jwt');
   }
 
   const { verifyUrl } = decoded;
 
   if (!verifyUrl) {
-    throw new HttpError(400, 'Missing verifyUrl in token payload');
+    throw new HttpError(400, 'Missing verifyUrl in jwt payload');
   }
 
-  const { data } = await axios.post(verifyUrl, { token, methodArn });
+  const { data } = await axios.post(verifyUrl, { jwt, methodArn });
   if (!data) {
     throw new HttpError(500, `No data in verify response from ${verifyUrl}`);
   }

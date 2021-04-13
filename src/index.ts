@@ -135,6 +135,7 @@ export const optionalParameters = (obj: any, parameterNames: string[], options?:
   return params;
 };
 
+export { GetIdentity } from './auth';
 export { Table, TableIndex, TableUuid, Joi } from './db';
 export { AWS } from './aws';
 export { GetSecret, SetSecret } from './secrets';

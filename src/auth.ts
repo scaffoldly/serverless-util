@@ -1,5 +1,5 @@
 import { APIGatewayProxyWithLambdaAuthorizerEvent } from 'aws-lambda';
-import { HttpError } from 'errors';
+import { HttpError } from './errors';
 
 export interface AuthContext {
   id: string;

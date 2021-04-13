@@ -1,4 +1,4 @@
-import { APIGatewayProxyWithLambdaAuthorizerEvent } from 'aws-lambda';
+import { APIGatewayProxyWithLambdaAuthorizerEvent, Context } from 'aws-lambda';
 import { HttpError } from './errors';
 import { JWT } from 'jose';
 import axios from 'axios';
@@ -11,7 +11,12 @@ export interface AuthContext {
 
 export type AuthorizedEvent = APIGatewayProxyWithLambdaAuthorizerEvent<AuthContext>;
 
-export const GetIdentity = async (event: AuthorizedEvent): Promise<string> => {
+export const GetIdentity = async (event: AuthorizedEvent, context: Context): Promise<string> => {
+  const { invokedFunctionArn: methodArn } = context;
+  if (!methodArn) {
+    throw new HttpError(500, 'Missing invokedFunctionArn in context');
+  }
+
   const { requestContext } = event;
   if (!requestContext) {
     throw new HttpError(500, 'Missing request context in event');
@@ -67,7 +72,7 @@ export const GetIdentity = async (event: AuthorizedEvent): Promise<string> => {
     throw new HttpError(400, 'Missing verifyUrl in token payload');
   }
 
-  const { data } = await axios.post(verifyUrl, { token });
+  const { data } = await axios.post(verifyUrl, { token, methodArn });
   if (!data) {
     throw new HttpError(500, `No data in verify response from ${verifyUrl}`);
   }

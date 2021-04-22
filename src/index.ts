@@ -57,6 +57,8 @@ export const handleSuccess = (event: any, body = {}, options?: HandleSuccessOpti
 };
 
 export const handleError = (event: any, error: any, options?: HandleErrorOptions) => {
+  console.error('Handling error', error);
+
   let status = options && options.statusCode ? options.statusCode : 500;
   if (error instanceof HttpError) {
     return error.response(event, options && options.headers ? options.headers : {});

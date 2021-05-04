@@ -1,13 +1,15 @@
 import { ALLOWED_ORIGINS, ALLOWED_HEADERS } from './constants';
 
 export const createHeaders = (event: any, headers = {} as { [key: string]: string }) => {
+  const headerKeys = Object.keys(headers);
+
   headers['Access-Control-Expose-Headers'] = headers['Access-Control-Expose-Headers']
     ? headers['Access-Control-Expose-Headers']
-    : Object.keys(headers).join(',');
+    : headerKeys.join(',');
 
   headers['Access-Control-Allow-Headers'] = headers['Access-Control-Allow-Headers']
     ? headers['Access-Control-Allow-Headers']
-    : [...Object.keys(headers), ...ALLOWED_HEADERS.split(',')].join(',');
+    : [...headerKeys, ...ALLOWED_HEADERS.split(',')].join(',');
 
   headers['Access-Control-Allow-Credentials'] = headers['Access-Control-Allow-Credentials']
     ? headers['Access-Control-Allow-Credentials']

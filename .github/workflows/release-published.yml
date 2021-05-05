@@ -11,6 +11,12 @@ jobs:
         with:
           node-version: '12'
           registry-url: 'https://registry.npmjs.org'
+      - uses: actions/cache@v2
+        with:
+          path: ./node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
       - run: yarn
       - uses: scaffoldly/bump-version-action@1.0.86
         with:

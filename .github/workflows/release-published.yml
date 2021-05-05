@@ -12,7 +12,7 @@ jobs:
           node-version: '12'
           registry-url: 'https://registry.npmjs.org'
       - run: yarn
-      - uses: scaffoldly/bump-version-action@1.0.85
+      - uses: scaffoldly/bump-version-action@1.0.86
         with:
           action: postrelease
           version-file: package.json

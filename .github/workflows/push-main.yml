@@ -1,10 +1,10 @@
-name: Commit to Main
+name: Push to Main
 on:
   push:
     branches:
       - main
 jobs:
-  build-and-tag:
+  prerelease:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -13,8 +13,8 @@ jobs:
           node-version: '12'
       - run: yarn
       - run: yarn prepublishOnly
-      - uses: 'scaffoldly/github-action-bump-version-npm@master'
+      - uses: scaffoldly/bump-version-action@1.0.83
         with:
-          tag-prefix: ''
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          action: prerelease
+          version-file: package.json
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

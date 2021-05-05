@@ -11,9 +11,7 @@
     "lint": "eslint src/*.ts",
     "prepare": "yarn build",
     "prepublishOnly": "yarn test && yarn lint",
-    "preversion": "yarn lint",
-    "version": "yarn format && git add -A src",
-    "postversion": "git push origin HEAD:master && git push --tags"
+    "preversion": "yarn lint"
   },
   "repository": {
     "type": "git",

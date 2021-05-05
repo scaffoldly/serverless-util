@@ -1,7 +1,7 @@
 name: Release Created
 on:
   release:
-    types: [created]
+    types: [published]
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -12,6 +12,11 @@ jobs:
           node-version: '12'
           registry-url: 'https://registry.npmjs.org'
       - run: yarn
+      - uses: scaffoldly/bump-version-action@1.0.83
+        with:
+          action: prerelease
+          version-file: package.json
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - run: yarn publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

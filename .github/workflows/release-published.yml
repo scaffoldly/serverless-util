@@ -14,7 +14,7 @@ jobs:
       - run: yarn
       - uses: scaffoldly/bump-version-action@1.0.83
         with:
-          action: prerelease
+          action: postrelease
           version-file: package.json
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - run: yarn publish --access public

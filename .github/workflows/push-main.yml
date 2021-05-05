@@ -13,7 +13,7 @@ jobs:
           node-version: '12'
       - run: yarn
       - run: yarn prepublishOnly
-      - uses: scaffoldly/bump-version-action@1.0.83
+      - uses: scaffoldly/bump-version-action@1.0.85
         with:
           action: prerelease
           version-file: package.json

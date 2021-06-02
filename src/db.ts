@@ -1,4 +1,4 @@
-import dynamo, { Model } from 'dynamodb';
+import { Model, define } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './aws';
 import { SERVICE_NAME, STAGE } from './constants';
@@ -41,7 +41,7 @@ export class Table<T> {
     this.serviceName = serviceName;
     this.stage = stage;
 
-    this.model = dynamo.define<T>(this.tableName, {
+    this.model = define<T>(this.tableName, {
       tableName: this.tableName,
       hashKey,
       rangeKey,

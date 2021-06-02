@@ -29,7 +29,6 @@ export class Table<T> {
     rangeKey?: string,
     indexes?: TableIndex[],
   ) {
-    let aws = AWS;
     let options: AWS.DynamoDB.ClientConfiguration = {};
     if (stage === 'local') {
       options = {
@@ -51,7 +50,7 @@ export class Table<T> {
       timestamps: true,
     });
 
-    this.model.config({ dynamodb: new aws.DynamoDB(options) });
+    this.model.config({ dynamodb: new AWS.DynamoDB(options) });
   }
 
   public matches(fullTableName: string): boolean {

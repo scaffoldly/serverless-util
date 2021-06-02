@@ -30,9 +30,7 @@ export const createApp = (): Express => {
   return app;
 };
 
-export function corsHandler(
-  options: CorsOptions = {},
-): (
+export function corsHandler(options: CorsOptions = {}): (
   req: cors.CorsRequest,
   res: {
     statusCode?: number;

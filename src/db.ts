@@ -1,4 +1,4 @@
-import * as dynamo from 'dynamodb';
+import dynamo, { Model } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './aws';
 import { SERVICE_NAME, STAGE } from './constants';
@@ -58,4 +58,4 @@ export class Table<T> {
   }
 }
 
-export { Joi };
+export { Joi, Model };

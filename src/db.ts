@@ -15,7 +15,7 @@ export interface TableIndex {
 }
 
 export class Table<T> {
-  readonly model: dynamo.Model<T>;
+  readonly model: Model<T>;
   private tableName: string;
   private serviceName: string;
   private stage: string;

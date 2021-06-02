@@ -1,4 +1,4 @@
-import { Model, define } from 'dynamodb';
+import { define, Model } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './aws';
 import { SERVICE_NAME, STAGE } from './constants';

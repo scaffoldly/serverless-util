@@ -1,17 +1,12 @@
 {
   "name": "@scaffoldly/serverless-util",
-  "version": "2.0.26-0",
-  "description": "Serverless Utility Functions",
+  "version": "3.0.0",
+  "description": "Scaffoldly Serverless Helper Functionality",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "echo todo",
     "build": "tsc",
-    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
-    "lint": "eslint src/*.ts",
-    "prepare": "yarn build",
-    "prepublishOnly": "yarn test && yarn lint",
-    "preversion": "yarn lint"
+    "prepare": "yarn build"
   },
   "repository": {
     "type": "git",
@@ -21,10 +16,13 @@
     "dist/**/*"
   ],
   "keywords": [
+    "Scaffoldly",
     "Serverless",
     "Utility",
     "Util",
-    "Functions"
+    "Functions",
+    "Helper",
+    "Labmda"
   ],
   "license": "GPL-3.0-or-later",
   "author": "Christian Nuss",
@@ -33,31 +31,37 @@
   },
   "homepage": "https://github.com/scaffoldly/scaffoldly-serverless-util#readme",
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.72",
+    "@types/cors": "^2.8.10",
+    "@types/dynamodb": "^1.3.0",
     "@types/jest": "^25.1.3",
     "@types/node": "^14.0.5",
     "@types/uuid": "^8.0.0",
-    "@typescript-eslint/eslint-plugin": "^4.17.0",
+    "@typescript-eslint/eslint-plugin": "^4.4.1",
     "@typescript-eslint/parser": "^4.17.0",
     "babel-eslint": "^10.1.0",
+    "dotenv-cli": "^4.0.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.1.0",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-import": "^2.20.2",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-prettier": "^3.1.3",
+    "eslint-plugin-prettier": "^3.4.0",
     "eslint-plugin-react": "^7.19.0",
+    "prettier": "^2.3.0",
     "jest": "^26.6.3",
-    "prettier": "^2.0.5",
     "typescript": "^4.2.3"
   },
   "dependencies": {
-    "@types/aws-lambda": "^8.10.72",
-    "@types/dynamodb": "^1.2.2",
+    "@scaffoldly/dynamodb": "^1.3.1",
     "aws-sdk": "^2.682.0",
     "aws-xray-sdk": "^3.2.0",
     "axios": "^0.21.1",
+    "cors": "^2.8.5",
     "dynamodb": "npm:@scaffoldly/dynamodb@1.3.1",
     "jose": "2",
-    "moment": "^2.29.1"
+    "moment": "^2.29.1",
+    "morgan-body": "^2.6.5",
+    "tsoa": "^3.8.0"
   }
 }

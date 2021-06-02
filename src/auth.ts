@@ -1,88 +1,89 @@
-import { APIGatewayProxyWithLambdaAuthorizerEvent, Context } from 'aws-lambda';
 import { HttpError } from './errors';
 import { JWT } from 'jose';
 import axios from 'axios';
 
-export interface AuthContext {
-  id: string;
-  aud: string;
-  verifyUrl: string;
-}
+import crypto from 'crypto';
+import moment, { Moment } from 'moment';
+import { DecodedJwtPayload, HttpRequest } from './interfaces';
+import { extractAuthorization, extractToken } from './http';
 
-export type AuthorizedEvent = APIGatewayProxyWithLambdaAuthorizerEvent<AuthContext>;
+export const AUTH_PREFIXES = ['Bearer', 'jwt', 'Token'];
 
-export const GetIdentity = async (event: AuthorizedEvent, context: Context): Promise<string> => {
-  const { invokedFunctionArn: methodArn } = context;
-  if (!methodArn) {
-    throw new HttpError(500, 'Missing invokedFunctionArn in context');
-  }
+const authCache: { [key: string]: { payload: DecodedJwtPayload; expires: Moment } } = {};
 
-  const { requestContext } = event;
-  if (!requestContext) {
-    throw new HttpError(500, 'Missing request context in event');
-  }
+const createCacheKey = (token: string, request: HttpRequest): { key: string; method: string; path: string } => {
+  const key = {
+    token,
+    method: request.method,
+    path: request.path,
+  };
+  const sha = crypto.createHash('sha1');
+  sha.update(JSON.stringify(key));
 
-  const { authorizer } = requestContext;
-  if (!authorizer) {
-    throw new HttpError(500, 'Missing authorizer in request context');
-  }
-
-  const { id, aud, principalId } = authorizer;
-
-  if (!principalId) {
-    throw new HttpError(500, 'Missing principalId in authorizer response');
-  }
-
-  if (id && aud === principalId) {
-    console.log('Authorized identity:', id);
-    return id;
-  }
-
-  if (!principalId.startsWith('offlineContext_authorizer')) {
-    throw new HttpError(401, 'Unauthorized', {
-      message: 'ID is missing from authorization and/or audience/principal mismatch',
-    });
-  }
-
-  console.warn('Process is running in serverless-offline, re-verifying using Authorization header');
-
-  const { headers } = event;
-  if (!headers || Object.keys(headers).length === 0) {
-    throw new HttpError(400, 'Missing headers');
-  }
-
-  const { Authorization: authorization } = headers;
-  if (!authorization) {
-    throw new HttpError(401, 'Unauthorized', { message: 'Authorization header is missing' });
-  }
-
-  const jwt = authorization.split(' ')[1];
-  if (!jwt) {
-    throw new HttpError(400, 'Invalid authorization header format');
-  }
-
-  const decoded = JWT.decode(jwt) as AuthContext;
-  if (!decoded) {
-    throw new HttpError(400, 'Unable to decode authorization header jwt');
-  }
-
-  const { verifyUrl } = decoded;
-
-  if (!verifyUrl) {
-    throw new HttpError(400, 'Missing verifyUrl in jwt payload');
-  }
-
-  const { data } = await axios.post(verifyUrl, { jwt, methodArn });
-  if (!data) {
-    throw new HttpError(500, `No data in verify response from ${verifyUrl}`);
-  }
-
-  const { id: remoteId } = data;
-  if (!remoteId) {
-    throw new HttpError(500, 'Unable to find id field in verification response', data);
-  }
-
-  console.log(`Remotely authorized identity (via ${verifyUrl}):`, remoteId);
-
-  return remoteId;
+  return { key: sha.digest('base64'), method: key.method, path: key.path };
 };
+
+export async function authorize(
+  request: HttpRequest,
+  securityName: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _scopes?: string[],
+): Promise<DecodedJwtPayload> {
+  if (securityName !== 'jwt') {
+    throw new Error(`Unsupported Security Name: ${securityName}`);
+  }
+
+  const authorization = extractAuthorization(request);
+  if (!authorization) {
+    throw new HttpError(401, 'Missing authorization header');
+  }
+
+  const token = extractToken(authorization);
+  if (!token) {
+    throw new Error('Unable to extract token');
+  }
+
+  const decoded = JWT.decode(token) as DecodedJwtPayload;
+  if (!decoded) {
+    throw new Error('Unable to decode token');
+  }
+
+  const cacheKey = createCacheKey(token, request);
+
+  if (authCache[cacheKey.key]) {
+    const { expires, payload } = authCache[cacheKey.key];
+    if (moment().isBefore(expires)) {
+      console.log(`Returning cached payload for ${payload.aud} (expires: ${expires}; cacheKey: ${cacheKey})`);
+      return payload;
+    }
+  }
+
+  const { authorizeUrl } = decoded;
+  if (!authorizeUrl) {
+    throw new Error('Missing authorizeUrl in token payload');
+  }
+
+  console.log(`Authorizing ${decoded.aud} externally to ${authorizeUrl}`);
+
+  const { data } = await axios.post(authorizeUrl, {
+    token,
+  });
+
+  console.log(`Authorization response`, data);
+
+  const { authorized, payload, error } = data;
+
+  if (error) {
+    throw error;
+  }
+
+  if (!authorized) {
+    throw new Error('Unauthorized');
+  }
+
+  const ret = payload as DecodedJwtPayload;
+
+  authCache[cacheKey.key] = { payload, expires: moment(ret.exp * 1000) };
+
+  return authCache[cacheKey.key].payload;
+}

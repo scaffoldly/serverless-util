@@ -26,7 +26,7 @@ export interface ErrorResponse {
   context?: { [key: string]: unknown };
 }
 
-export type CleansedObject = { [key: string]: string | number | boolean };
+export type CleansedObject = { [key: string]: string | number | boolean | null };
 
 export interface JwtPayload extends CleansedObject {
   id: string;

@@ -79,8 +79,8 @@ export function errorHandler(version: string) {
 
     if (err instanceof HttpError) {
       httpError = err;
-    } else if (err instanceof ValidateError) {
-      httpError = new HttpError(422, 'Validation Failed', { fields: err.fields });
+    } else if (err instanceof ValidateError || err.name === 'ValidateError') {
+      httpError = new HttpError(err.status, 'Validation Failed', { fields: err.fields });
     } else if (err.statusCode) {
       httpError = new HttpError(err.statusCode, err.message || err.name, err);
     } else {

@@ -8,6 +8,7 @@
     "outDir": "dist/",
     "sourceMap": true,
     "declaration": true,
+    "declarationMap": true,
 
     /* Strict Type-Checking Options */
     "strict": true,
@@ -36,6 +37,7 @@
     "emitDecoratorMetadata": true,
 
     /* Advanced Options */
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "typeRoots": ["src/@types"]
   }
 }

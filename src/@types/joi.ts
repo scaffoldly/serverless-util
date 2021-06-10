@@ -462,3 +462,5 @@ declare module 'joi' {
          */
         extractOne<T>;
 }
+
+export { joi };

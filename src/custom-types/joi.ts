@@ -429,40 +429,40 @@ declare module 'joi' {
       : T extends joi.AnySchema
       ? any
       : any;
-
-  type extractType<T extends mappedSchema> =
-    /**
-     * Hack to support [Schema1, Schema2, ...N] alternatives notation
-     * Can't use extractType directly here because of cycles:
-     * ```
-     * T extends Array<infer O> ? extractType<O> :
-     *                            ^ cycle
-     * ```
-     */
-    T extends Array<infer O>
-      ? O extends joi.SchemaLike
-        ? extractOne<O>
-        : O extends BoxedPrimitive
-        ? extractOne<O>
-        : O
-      : /**
-       * Handle Objects as schemas, without Joi.object at the root.
-       * It needs to come first than mappedSchema.
-       * It is difficult to avoid it to be inferred from extends clause.
-       */
-      T extends mappedSchemaMap
-      ? extractMap<T>
-      : /**
-       * This is the base case for every schema implemented
-       */
-      T extends joi.SchemaLike
-      ? extractOne<T>
-      : T extends BoxedPrimitive
-      ? extractOne<T>
-      : /**
-         * Default case to handle primitives and schemas
-         */
-        extractOne<T>;
 }
-export type extractType<T> = joi.extractType<T>;
-export { joi as Joi };
+
+type extractType<T extends joi.mappedSchema> =
+  /**
+   * Hack to support [Schema1, Schema2, ...N] alternatives notation
+   * Can't use extractType directly here because of cycles:
+   * ```
+   * T extends Array<infer O> ? extractType<O> :
+   *                            ^ cycle
+   * ```
+   */
+  T extends Array<infer O>
+    ? O extends joi.SchemaLike
+      ? joi.extractOne<O>
+      : O extends joi.BoxedPrimitive
+      ? joi.extractOne<O>
+      : O
+    : /**
+     * Handle Objects as schemas, without Joi.object at the root.
+     * It needs to come first than mappedSchema.
+     * It is difficult to avoid it to be inferred from extends clause.
+     */
+    T extends joi.mappedSchemaMap
+    ? joi.extractMap<T>
+    : /**
+     * This is the base case for every schema implemented
+     */
+    T extends joi.SchemaLike
+    ? joi.extractOne<T>
+    : T extends joi.BoxedPrimitive
+    ? joi.extractOne<T>
+    : /**
+       * Default case to handle primitives and schemas
+       */
+      joi.extractOne<T>;
+
+export { joi as Joi, extractType };

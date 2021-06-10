@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-// This exists here due to lack of Joi 17 support in:
+// This exists here due to lack of Joi 17 support in
 //   https://github.com/TCMiranda/joi-extract-type
 // Ref: https://github.com/TCMiranda/joi-extract-type/issues/22#issuecomment-716122472
+// and an inability to import external types:
+// https://github.com/lukeautry/tsoa/issues/774
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import * as joi from 'joi';
+import joi from 'joi';
 
 type ArrayType<T> = T extends (infer U)[] ? U : never;
 
@@ -462,5 +464,5 @@ declare module 'joi' {
          */
         extractOne<T>;
 }
-
-export { joi };
+export type extractType<T> = joi.extractType<T>;
+export { joi as Joi };

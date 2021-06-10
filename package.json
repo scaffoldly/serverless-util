@@ -2,6 +2,7 @@
   "name": "@scaffoldly/serverless-util",
   "version": "3.0.7",
   "description": "Scaffoldly Serverless Helper Functionality",
+  "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

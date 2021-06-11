@@ -7,7 +7,7 @@
 // https://github.com/lukeautry/tsoa/issues/774
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import joi from 'joi';
+import * as joi from 'joi';
 
 type ArrayType<T> = T extends (infer U)[] ? U : never;
 

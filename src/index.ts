@@ -1,4 +1,4 @@
-export * from './custom-types';
+export * from './exports';
 export * from './auth';
 export * from './aws';
 export * from './constants';

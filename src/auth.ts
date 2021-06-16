@@ -4,12 +4,25 @@ import axios from 'axios';
 
 import crypto from 'crypto';
 import moment, { Moment } from 'moment';
-import { DecodedJwtPayload, HttpRequest } from './interfaces';
+import { HttpRequest } from './interfaces';
 import { extractAuthorization, extractToken } from './http';
+
+interface Payload {
+  id: string;
+  sk: string;
+  sub: string;
+  aud: string;
+  iss: string;
+  iat: number;
+  exp: number;
+  refreshUrl: string;
+  authorizeUrl: string;
+  certsUrl: string;
+}
 
 export const AUTH_PREFIXES = ['Bearer', 'jwt', 'Token'];
 
-const authCache: { [key: string]: { payload: DecodedJwtPayload; expires: Moment } } = {};
+const authCache: { [key: string]: { payload: Payload; expires: Moment } } = {};
 
 const createCacheKey = (token: string, request: HttpRequest): { key: string; method: string; path: string } => {
   const key = {
@@ -28,7 +41,7 @@ export async function authorize(
   securityName: string,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _scopes?: string[],
-): Promise<DecodedJwtPayload> {
+): Promise<Payload> {
   if (securityName !== 'jwt') {
     throw new Error(`Unsupported Security Name: ${securityName}`);
   }
@@ -43,7 +56,7 @@ export async function authorize(
     throw new Error('Unable to extract token');
   }
 
-  const decoded = JWT.decode(token) as DecodedJwtPayload;
+  const decoded = JWT.decode(token) as Payload;
   if (!decoded) {
     throw new Error('Unable to decode token');
   }
@@ -81,7 +94,7 @@ export async function authorize(
     throw new Error('Unauthorized');
   }
 
-  const ret = payload as DecodedJwtPayload;
+  const ret = payload as Payload;
 
   authCache[cacheKey.key] = { payload, expires: moment(ret.exp * 1000) };
 

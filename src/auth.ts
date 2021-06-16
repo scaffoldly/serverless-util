@@ -7,6 +7,7 @@ import moment, { Moment } from 'moment';
 import { DecodedJwtPayload, HttpRequest } from './interfaces';
 import { extractAuthorization, extractToken } from './http';
 
+export const URN_PREFIX = 'urn';
 export const AUTH_PREFIXES = ['Bearer', 'jwt', 'Token'];
 
 const authCache: { [key: string]: { payload: DecodedJwtPayload; expires: Moment } } = {};
@@ -23,67 +24,96 @@ const createCacheKey = (token: string, request: HttpRequest): { key: string; met
   return { key: sha.digest('base64'), method: key.method, path: key.path };
 };
 
-export async function authorize(
-  request: HttpRequest,
-  securityName: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _scopes?: string[],
-): Promise<DecodedJwtPayload> {
-  if (securityName !== 'jwt') {
-    throw new Error(`Unsupported Security Name: ${securityName}`);
+export const generateAudience = (domain: string, id: string): string => `${URN_PREFIX}:auth:${domain}:${id}`;
+
+export const verifyAudience = (domain: string, aud: string): boolean => {
+  if (!aud) {
+    console.warn('Missing audience');
+    return false;
   }
 
-  const authorization = extractAuthorization(request);
-  if (!authorization) {
-    throw new HttpError(401, 'Missing authorization header');
+  const parts = aud.split(':');
+  if (parts.length < 4) {
+    console.warn('Unable to parse audience:', parts);
+    return false;
   }
 
-  const token = extractToken(authorization);
-  if (!token) {
-    throw new Error('Unable to extract token');
+  const [, , checkDomain] = parts;
+  if (!checkDomain) {
+    console.warn('Unable to find domain in audience');
   }
 
-  const decoded = JWT.decode(token) as DecodedJwtPayload;
-  if (!decoded) {
-    throw new Error('Unable to decode token');
+  if (checkDomain === domain) {
+    return true;
   }
 
-  const cacheKey = createCacheKey(token, request);
+  console.warn(`Domain mismatch. Got ${checkDomain}, expected ${domain}`);
+  return false;
+};
 
-  if (authCache[cacheKey.key]) {
-    const { expires, payload } = authCache[cacheKey.key];
-    if (moment().isBefore(expires)) {
-      console.log(`Returning cached payload for ${payload.aud} (expires: ${expires}; cacheKey: ${cacheKey})`);
-      return payload;
+export async function authorize(domain?: string) {
+  // TODO: Support Scopes
+  return async (request: HttpRequest, securityName: string, _scopes?: string[]): Promise<DecodedJwtPayload> => {
+    if (securityName !== 'jwt') {
+      throw new Error(`Unsupported Security Name: ${securityName}`);
     }
-  }
 
-  const { authorizeUrl } = decoded;
-  if (!authorizeUrl) {
-    throw new Error('Missing authorizeUrl in token payload');
-  }
+    const authorization = extractAuthorization(request);
+    if (!authorization) {
+      throw new HttpError(401, 'Missing authorization header');
+    }
 
-  console.log(`Authorizing ${decoded.aud} externally to ${authorizeUrl}`);
+    const token = extractToken(authorization);
+    if (!token) {
+      throw new HttpError(400, 'Unable to extract token');
+    }
 
-  const { data } = await axios.post(authorizeUrl, {
-    token,
-  });
+    const decoded = JWT.decode(token) as DecodedJwtPayload;
+    if (!decoded) {
+      throw new HttpError(400, 'Unable to decode token');
+    }
 
-  console.log(`Authorization response`, data);
+    if (domain && !verifyAudience(domain, decoded.aud)) {
+      throw new HttpError(401, 'Audience mismatch');
+    }
 
-  const { authorized, payload, error } = data;
+    const cacheKey = createCacheKey(token, request);
 
-  if (error) {
-    throw error;
-  }
+    if (authCache[cacheKey.key]) {
+      const { expires, payload } = authCache[cacheKey.key];
+      if (moment().isBefore(expires)) {
+        console.log(`Returning cached payload for ${payload.aud} (expires: ${expires}; cacheKey: ${cacheKey})`);
+        return payload;
+      }
+    }
 
-  if (!authorized) {
-    throw new Error('Unauthorized');
-  }
+    const { authorizeUrl } = decoded;
+    if (!authorizeUrl) {
+      throw new Error('Missing authorizeUrl in token payload');
+    }
 
-  const ret = payload as DecodedJwtPayload;
+    console.log(`Authorizing ${decoded.aud} externally to ${authorizeUrl}`);
 
-  authCache[cacheKey.key] = { payload, expires: moment(ret.exp * 1000) };
+    const { data } = await axios.post(authorizeUrl, {
+      token,
+    });
 
-  return authCache[cacheKey.key].payload;
+    console.log(`Authorization response`, data);
+
+    const { authorized, payload, error } = data;
+
+    if (error) {
+      throw error;
+    }
+
+    if (!authorized) {
+      throw new HttpError(401, 'Unauthorized');
+    }
+
+    const ret = payload as DecodedJwtPayload;
+
+    authCache[cacheKey.key] = { payload, expires: moment(ret.exp * 1000) };
+
+    return authCache[cacheKey.key].payload;
+  };
 }

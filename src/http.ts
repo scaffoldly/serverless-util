@@ -52,3 +52,12 @@ export const extractToken = (authorization: string): string | null => {
 
   return token;
 };
+
+export const extractRequestToken = (request: HttpRequest): string | null => {
+  const authorization = extractAuthorization(request);
+  if (!authorization) {
+    return null;
+  }
+
+  return extractToken(authorization);
+};

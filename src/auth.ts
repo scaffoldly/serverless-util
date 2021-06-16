@@ -51,7 +51,7 @@ export const verifyAudience = (domain: string, aud: string): boolean => {
   return false;
 };
 
-export async function authorize(domain?: string) {
+export function authorize(domain?: string) {
   // TODO: Support Scopes
   return async (request: HttpRequest, securityName: string, _scopes?: string[]): Promise<DecodedJwtPayload> => {
     if (securityName !== 'jwt') {

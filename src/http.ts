@@ -1,4 +1,5 @@
 import { AUTH_PREFIXES } from './auth';
+import { HttpError } from './errors';
 import { HttpRequest } from './interfaces';
 
 export const extractAuthorization = (request: HttpRequest): string | null => {
@@ -53,11 +54,16 @@ export const extractToken = (authorization: string): string | null => {
   return token;
 };
 
-export const extractRequestToken = (request: HttpRequest): string | null => {
+export const extractRequestToken = (request: HttpRequest): string => {
   const authorization = extractAuthorization(request);
   if (!authorization) {
-    return null;
+    throw new HttpError(401, 'Unauthorized');
   }
 
-  return extractToken(authorization);
+  const token = extractToken(authorization);
+  if (!token) {
+    throw new HttpError(401, 'Unauthorized');
+  }
+
+  return token;
 };

@@ -26,6 +26,22 @@ export interface ErrorResponse {
   context?: { [key: string]: unknown };
 }
 
-export type HttpRequestWithUser = HttpRequest & {
-  user: { id: string; sk: string; sub: string; aud: string; iss: string; iat: number; exp: number };
-};
+export type CleansedObject = { [key: string]: string | number | boolean };
+
+export interface JwtPayload extends CleansedObject {
+  id: string;
+  sk: string;
+  refreshUrl: string;
+  authorizeUrl: string;
+  certsUrl: string;
+}
+
+export interface DecodedJwtPayload extends JwtPayload {
+  sub: string;
+  aud: string;
+  iss: string;
+  iat: number;
+  exp: number;
+}
+
+export type HttpRequestWithUser = HttpRequest & { user: DecodedJwtPayload };

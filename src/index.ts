@@ -8,4 +8,3 @@ export * from './express';
 export * from './http';
 export * from './interfaces';
 export * from './secrets';
-export * from './util';

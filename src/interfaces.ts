@@ -33,6 +33,7 @@ export interface JwtPayload extends CleansedObject {
   refreshUrl: string;
   authorizeUrl: string;
   certsUrl: string;
+  sessionId: string;
 }
 
 export interface DecodedJwtPayload extends JwtPayload {

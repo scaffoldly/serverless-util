@@ -16,7 +16,6 @@ export interface ErrorResponseTracking {
   method: string;
   path: string;
   version: string;
-  source: string;
 }
 
 export interface ErrorResponse {

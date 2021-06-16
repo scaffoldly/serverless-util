@@ -61,19 +61,14 @@ export function corsHandler(options: CorsOptions = {}): (
 export function errorHandler(version: string) {
   return (err: Error | any, req: Request, res: Response, next: NextFunction): Response | void => {
     const traceId = process.env[XRAY_ENV_TRACE_ID] || 'Unknown-Trace-Id';
+
+    console.warn(`[Error] [${traceId}] [${err.name || Object.getPrototypeOf(err)}] Message: ${err.message}`, err);
+
     const tracking: ErrorResponseTracking = {
       method: req.method,
       path: req.path,
       version,
-      source: (err && err instanceof Error && err.stack ? err.stack.split('\n')[1] : 'unknown source').trim(),
     };
-
-    console.warn(
-      `[Error] [${traceId}] [${err.name || Object.getPrototypeOf(err)}] Message: ${
-        err.message
-      } Tracking: ${JSON.stringify(tracking)}`,
-      err,
-    );
 
     let httpError: HttpError;
 

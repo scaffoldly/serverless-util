@@ -1,6 +1,7 @@
-name: Build
+name: Push to Main
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
 

@@ -60,7 +60,7 @@
     "cors": "^2.8.5",
     "dynamodb": "npm:@scaffoldly/dynamodb@1.3.1",
     "joi": "^17.4.0",
-    "jose": "2",
+    "jose": "^2.0.5",
     "moment": "^2.29.1",
     "morgan-body": "^2.6.5",
     "tsoa": "^3.8.0"

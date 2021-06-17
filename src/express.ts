@@ -4,7 +4,7 @@ import cors from 'cors';
 import express, { Express, NextFunction, Request, Response } from 'express';
 import morganBody from 'morgan-body';
 import { ErrorResponse, ErrorResponseTracking } from './interfaces';
-import { XRAY_ENV_TRACE_ID } from './aws';
+import { XRAY_ENV_TRACE_ID } from './exports';
 import { HttpError } from './errors';
 
 export interface CorsOptions {

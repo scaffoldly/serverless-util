@@ -1,6 +1,6 @@
 import * as AWSXRay from 'aws-xray-sdk-core';
 import * as _AWS from 'aws-sdk';
-import { STAGE } from './constants';
+import { STAGE } from '../constants';
 import * as http from 'http';
 
 export const AWS = STAGE !== 'local' ? AWSXRay.captureAWS(_AWS) : _AWS;

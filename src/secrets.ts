@@ -1,4 +1,4 @@
-import { AWS } from './aws';
+import { AWS } from './exports';
 import { SERVICE_NAME, STAGE } from './constants';
 
 const secretsmanager: AWS.SecretsManager = new AWS.SecretsManager();

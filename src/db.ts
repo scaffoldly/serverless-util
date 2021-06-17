@@ -1,6 +1,6 @@
 import { define, Model } from 'dynamodb';
 import Joi from 'joi';
-import { AWS } from './aws';
+import { AWS } from './exports';
 import { SERVICE_NAME, STAGE } from './constants';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {

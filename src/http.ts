@@ -2,6 +2,15 @@ import { AUTH_PREFIXES } from './auth';
 import { HttpError } from './errors';
 import { HttpRequest } from './interfaces';
 
+export const constructServiceUrl = (request: HttpRequest, serviceName?: string, path?: string): string => {
+  const { headers } = request;
+  const { host } = headers;
+  const ssl = headers['x-forwarded-proto'] === 'https';
+
+  // TODO Use URI Builder
+  return `${ssl ? 'https' : 'http'}://${host}${serviceName ? `/${serviceName}` : ''}${path ? path : ''}`;
+};
+
 export const extractAuthorization = (request: HttpRequest): string | null => {
   if (!request) {
     console.warn('Unable to extract authorization header: Request is null');

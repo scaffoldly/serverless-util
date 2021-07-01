@@ -9,6 +9,7 @@ import { HttpError } from './errors';
 
 export interface CorsOptions {
   headers?: string[];
+  withCredentials?: boolean;
 }
 
 export const createApp = (): Express => {
@@ -49,6 +50,7 @@ export function corsHandler(options: CorsOptions = {}): (
       'X-Api-Key',
       'X-Amz-Security-Token',
       'X-Amz-User-Agent',
+      ...(options.withCredentials ? ['Access-Control-Allow-Credentials'] : []),
       ...(options.headers && options.headers.length ? options.headers : []),
     ],
     credentials: false,

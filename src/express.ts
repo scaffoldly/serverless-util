@@ -10,6 +10,7 @@ import { HttpError } from './errors';
 export interface CorsOptions {
   headers?: string[];
   withCredentials?: boolean;
+  maxAge?: number;
 }
 
 export const createApp = (): Express => {
@@ -43,6 +44,7 @@ export function corsHandler(options: CorsOptions = {}): (
   return cors({
     origin: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+    maxAge: options.maxAge ? options.maxAge : 7200,
     allowedHeaders: [
       'Content-Type',
       'Authorization',

@@ -27,7 +27,7 @@ export interface ErrorResponse {
 
 export type CleansedObject = { [key: string]: string | number | boolean };
 
-export interface JwtPayload extends CleansedObject {
+export interface JwtPayloadBase extends CleansedObject {
   id: string;
   sk: string;
   refreshUrl: string;
@@ -36,7 +36,7 @@ export interface JwtPayload extends CleansedObject {
   sessionId: string;
 }
 
-export interface DecodedJwtPayload extends JwtPayload {
+export interface DecodedJwtPayload extends JwtPayloadBase {
   sub: string;
   aud: string;
   iss: string;

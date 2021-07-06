@@ -9,3 +9,5 @@ export const XRAY_ENV_TRACE_ID = '_X_AMZN_TRACE_ID';
 if (STAGE !== 'local') {
   AWSXRay.captureHTTPsGlobal(http, true);
 }
+
+export * from 'aws-lambda';

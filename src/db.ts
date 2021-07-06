@@ -87,6 +87,4 @@ export const unmarshallDynamoDBImage = <T>(
   return AWS.DynamoDB.Converter.unmarshall(image, options) as T;
 };
 
-export type DynamoDBRecords = DynamoDBRecord[];
-
 export { Model };

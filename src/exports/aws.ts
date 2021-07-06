@@ -10,4 +10,4 @@ if (STAGE !== 'local') {
   AWSXRay.captureHTTPsGlobal(http, true);
 }
 
-export * from 'aws-lambda';
+export * as LambdaTypes from 'aws-lambda';

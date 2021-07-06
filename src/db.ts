@@ -2,7 +2,7 @@ import { define, Model } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './exports';
 import { SERVICE_NAME, STAGE } from './constants';
-import { APIGatewayProxyResult, DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
+import { APIGatewayProxyResult, DynamoDBStreamEvent } from 'aws-lambda';
 import { HttpRequestBase } from './interfaces';
 import { AttributeValue } from 'aws-sdk/clients/dynamodbstreams';
 import { Converter } from 'aws-sdk/clients/dynamodb';

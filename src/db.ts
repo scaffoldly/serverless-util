@@ -104,6 +104,6 @@ export const dynamoDBStreamEventRequestMapper = (path: string) => {
   };
 };
 
-export const dynamoDBStreamEventResponseMapper = () => (result: APIGatewayProxyResult) => result;
+export const dynamoDBStreamEventResponseMapper = () => () => {};
 
 export { Model };

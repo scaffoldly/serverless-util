@@ -1,7 +1,7 @@
 import { define, Model } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './exports';
-import { PROCESS_UUID, SERVICE_NAME, STAGE } from './constants';
+import { PROCESS_UUID, PROCESS_UUID_HEADER, SERVICE_NAME, STAGE } from './constants';
 import { AttributeValue, DynamoDBRecord, DynamoDBStreamEvent, StreamRecord } from 'aws-lambda';
 import { HttpRequestBase } from './interfaces';
 import { Converter } from 'aws-sdk/clients/dynamodb';
@@ -92,7 +92,7 @@ export const dynamoDBStreamEventRequestMapper = (path: string, id = PROCESS_UUID
       method: 'POST',
       path,
       headers: {
-        'X-Process-Uuid': id,
+        [PROCESS_UUID_HEADER]: id,
       },
       body: container.event.Records.map((record) => {
         if (!record.dynamodb) {

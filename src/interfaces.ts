@@ -5,9 +5,11 @@ export type ExpressResponse = express.Response;
 
 // Generic type to support multiple server types (Express, etc)
 export type HttpRequestBase = {
+  method: string;
   headers: Record<string, string>;
   path: string;
   hostname: string;
+  body?: any;
 };
 
 export type HttpRequest = HttpRequestBase & express.Request;

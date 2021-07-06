@@ -2,10 +2,18 @@ import { define, Model } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './exports';
 import { SERVICE_NAME, STAGE } from './constants';
+import { APIGatewayProxyResult, DynamoDBRecord, DynamoDBStreamEvent } from 'aws-lambda';
+import { HttpRequestBase } from './interfaces';
+import { AttributeValue } from 'aws-sdk/clients/dynamodbstreams';
+import { Converter } from 'aws-sdk/clients/dynamodb';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
   return `${stage}-${serviceName}${tableSuffix ? `-${tableSuffix}` : ''}`;
 };
+
+export interface DynamoDBStreamEventContainer {
+  event: DynamoDBStreamEvent;
+}
 
 export interface TableIndex {
   hashKey: string;
@@ -57,5 +65,28 @@ export class Table<T> {
     return fullTableName === createTableName(this.tableName, this.serviceName, this.stage);
   }
 }
+
+export const dynamoDBStreamEventRequestMapper = (path: string) => {
+  return (container: DynamoDBStreamEventContainer): HttpRequestBase => {
+    return {
+      hostname: 'lambda.amazonaws.com', // TODO: Is there a dynamodb stream events namespace?
+      method: 'POST',
+      path,
+      headers: {},
+      body: container.event.Records,
+    };
+  };
+};
+
+export const dynamoDBStreamEventResponseMapper = () => (result: APIGatewayProxyResult) => result;
+
+export const unmarshallDynamoDBImage = <T>(
+  image: { [key: string]: AttributeValue },
+  options?: Converter.ConverterOptions,
+): T => {
+  return AWS.DynamoDB.Converter.unmarshall(image, options) as T;
+};
+
+export type DynamoDBRecords = DynamoDBRecord[];
 
 export { Model };

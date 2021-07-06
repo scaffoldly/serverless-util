@@ -1,7 +1,7 @@
 import { define, Model } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './exports';
-import { SERVICE_NAME, STAGE } from './constants';
+import { PROCESS_UUID, SERVICE_NAME, STAGE } from './constants';
 import { AttributeValue, DynamoDBRecord, DynamoDBStreamEvent, StreamRecord } from 'aws-lambda';
 import { HttpRequestBase } from './interfaces';
 import { Converter } from 'aws-sdk/clients/dynamodb';
@@ -85,13 +85,15 @@ export interface UnmarshalledDynamoDBStreamEvent extends DynamoDBStreamEvent {
   Records: UnmarshalledDynamoDBRecord[];
 }
 
-export const dynamoDBStreamEventRequestMapper = (path: string) => {
+export const dynamoDBStreamEventRequestMapper = (path: string, id = PROCESS_UUID) => {
   return (container: { event: UnmarshalledDynamoDBStreamEvent }): HttpRequestBase => {
     return {
       hostname: 'lambda.amazonaws.com', // TODO: Is there a dynamodb stream events namespace?
       method: 'POST',
       path,
-      headers: {},
+      headers: {
+        'X-Process-Uuid': id,
+      },
       body: container.event.Records.map((record) => {
         if (!record.dynamodb) {
           return record;

@@ -2,8 +2,8 @@ import { define, Model } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './exports';
 import { PROCESS_UUID, PROCESS_UUID_HEADER, SERVICE_NAME, STAGE } from './constants';
-import { AttributeValue, DynamoDBRecord, DynamoDBStreamEvent, StreamRecord } from 'aws-lambda';
-import { HttpRequestBase } from './interfaces';
+import { AttributeValue, DynamoDBStreamEvent } from 'aws-lambda';
+import { HttpRequestBase, TypedDynamoDBRecord } from './interfaces';
 import { Converter } from 'aws-sdk/clients/dynamodb';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
@@ -72,21 +72,8 @@ export const unmarshallDynamoDBImage = <T>(
   return AWS.DynamoDB.Converter.unmarshall(image, options) as T;
 };
 
-export interface UnmarshalledStreamRecord extends StreamRecord {
-  New?: any;
-  Old?: any;
-}
-
-export interface UnmarshalledDynamoDBRecord extends DynamoDBRecord {
-  dynamodb?: UnmarshalledStreamRecord;
-}
-
-export interface UnmarshalledDynamoDBStreamEvent extends DynamoDBStreamEvent {
-  Records: UnmarshalledDynamoDBRecord[];
-}
-
 export const dynamoDBStreamEventRequestMapper = (path: string, id = PROCESS_UUID) => {
-  return (container: { event: UnmarshalledDynamoDBStreamEvent }): HttpRequestBase => {
+  return (container: { event: DynamoDBStreamEvent }): HttpRequestBase => {
     return {
       hostname: 'lambda.amazonaws.com', // TODO: Is there a dynamodb stream events namespace?
       method: 'POST',
@@ -94,13 +81,18 @@ export const dynamoDBStreamEventRequestMapper = (path: string, id = PROCESS_UUID
       headers: {
         [PROCESS_UUID_HEADER]: id,
       },
-      body: container.event.Records.map((record) => {
+      body: container.event.Records.map<TypedDynamoDBRecord<any>>((record) => {
         if (!record.dynamodb) {
-          return record;
+          return record as TypedDynamoDBRecord<any>;
         }
-        record.dynamodb.New = record.dynamodb.NewImage ? unmarshallDynamoDBImage(record.dynamodb.NewImage) : undefined;
-        record.dynamodb.Old = record.dynamodb.OldImage ? unmarshallDynamoDBImage(record.dynamodb.OldImage) : undefined;
-        return record;
+        return {
+          dynamodb: {
+            New: record.dynamodb.NewImage ? unmarshallDynamoDBImage(record.dynamodb.NewImage) : undefined,
+            Old: record.dynamodb.OldImage ? unmarshallDynamoDBImage(record.dynamodb.OldImage) : undefined,
+          },
+          eventID: record.eventID,
+          eventName: record.eventName,
+        };
       }),
     };
   };

@@ -47,3 +47,18 @@ export interface DecodedJwtPayload extends JwtPayloadBase {
 }
 
 export type HttpRequestWithUser = HttpRequest & { user: DecodedJwtPayload };
+
+export type TypedDynamoDBStreamRecord<T> = {
+  New?: T;
+  Old?: T;
+};
+
+export type TypedDynamoDBRecord<T> = {
+  dynamodb?: TypedDynamoDBStreamRecord<T>;
+  eventID?: string;
+  eventName?: 'INSERT' | 'MODIFY' | 'REMOVE';
+};
+
+export type TypedDynamoDBStreamEvent<T> = {
+  Records: TypedDynamoDBRecord<T>[];
+};

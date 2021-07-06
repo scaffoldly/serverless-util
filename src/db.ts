@@ -2,9 +2,8 @@ import { define, Model } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './exports';
 import { SERVICE_NAME, STAGE } from './constants';
-import { APIGatewayProxyResult, DynamoDBStreamEvent } from 'aws-lambda';
+import { APIGatewayProxyResult, AttributeValue, DynamoDBRecord, DynamoDBStreamEvent, StreamRecord } from 'aws-lambda';
 import { HttpRequestBase } from './interfaces';
-import { AttributeValue } from 'aws-sdk/clients/dynamodbstreams';
 import { Converter } from 'aws-sdk/clients/dynamodb';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
@@ -66,25 +65,45 @@ export class Table<T> {
   }
 }
 
-export const dynamoDBStreamEventRequestMapper = (path: string) => {
-  return (container: DynamoDBStreamEventContainer): HttpRequestBase => {
-    return {
-      hostname: 'lambda.amazonaws.com', // TODO: Is there a dynamodb stream events namespace?
-      method: 'POST',
-      path,
-      headers: {},
-      body: container.event.Records,
-    };
-  };
-};
-
-export const dynamoDBStreamEventResponseMapper = () => (result: APIGatewayProxyResult) => result;
-
 export const unmarshallDynamoDBImage = <T>(
   image: { [key: string]: AttributeValue },
   options?: Converter.ConverterOptions,
 ): T => {
   return AWS.DynamoDB.Converter.unmarshall(image, options) as T;
 };
+
+export interface UnmarshalledStreamRecord extends StreamRecord {
+  New?: any;
+  Old?: any;
+}
+
+export interface MarshalledDynamoDBRecord extends DynamoDBRecord {
+  dynamodb?: UnmarshalledStreamRecord;
+}
+
+export interface MarshalledDynamoDBStreamEvent extends DynamoDBStreamEvent {
+  Records: MarshalledDynamoDBRecord[];
+}
+
+export const dynamoDBStreamEventRequestMapper = (path: string) => {
+  return (container: { event: MarshalledDynamoDBStreamEvent }): HttpRequestBase => {
+    return {
+      hostname: 'lambda.amazonaws.com', // TODO: Is there a dynamodb stream events namespace?
+      method: 'POST',
+      path,
+      headers: {},
+      body: container.event.Records.map((record) => {
+        if (!record.dynamodb) {
+          return record;
+        }
+        record.dynamodb.New = record.dynamodb.NewImage ? unmarshallDynamoDBImage(record.dynamodb.NewImage) : undefined;
+        record.dynamodb.Old = record.dynamodb.OldImage ? unmarshallDynamoDBImage(record.dynamodb.OldImage) : undefined;
+        return record;
+      }),
+    };
+  };
+};
+
+export const dynamoDBStreamEventResponseMapper = () => (result: APIGatewayProxyResult) => result;
 
 export { Model };

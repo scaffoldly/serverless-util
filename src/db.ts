@@ -77,16 +77,16 @@ export interface UnmarshalledStreamRecord extends StreamRecord {
   Old?: any;
 }
 
-export interface MarshalledDynamoDBRecord extends DynamoDBRecord {
+export interface UnmarshalledDynamoDBRecord extends DynamoDBRecord {
   dynamodb?: UnmarshalledStreamRecord;
 }
 
-export interface MarshalledDynamoDBStreamEvent extends DynamoDBStreamEvent {
-  Records: MarshalledDynamoDBRecord[];
+export interface UnmarshalledDynamoDBStreamEvent extends DynamoDBStreamEvent {
+  Records: UnmarshalledDynamoDBRecord[];
 }
 
 export const dynamoDBStreamEventRequestMapper = (path: string) => {
-  return (container: { event: MarshalledDynamoDBStreamEvent }): HttpRequestBase => {
+  return (container: { event: UnmarshalledDynamoDBStreamEvent }): HttpRequestBase => {
     return {
       hostname: 'lambda.amazonaws.com', // TODO: Is there a dynamodb stream events namespace?
       method: 'POST',

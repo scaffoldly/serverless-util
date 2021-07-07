@@ -3,7 +3,7 @@ import Joi from 'joi';
 import { AWS } from './exports';
 import { PROCESS_UUID, PROCESS_UUID_HEADER, SERVICE_NAME, STAGE } from './constants';
 import { AttributeValue, DynamoDBStreamEvent } from 'aws-lambda';
-import { HttpRequestBase, TypedDynamoDBRecord } from './interfaces';
+import { HttpRequestBase, TypedDynamoDBRecord, TypedDynamoDBStreamEvent } from './interfaces';
 import { Converter } from 'aws-sdk/clients/dynamodb';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
@@ -65,6 +65,17 @@ export class Table<T> {
   }
 }
 
+export const dynamoDBStreamEventExtractTableName = (eventSourceARN: string): string | undefined => {
+  if (!eventSourceARN) {
+    return;
+  }
+  const parts = eventSourceARN.split('/');
+  if (parts.length !== 4) {
+    return;
+  }
+  return parts[1];
+};
+
 export const unmarshallDynamoDBImage = <T>(
   image: { [key: string]: AttributeValue },
   options?: Converter.ConverterOptions,
@@ -74,26 +85,41 @@ export const unmarshallDynamoDBImage = <T>(
 
 export const dynamoDBStreamEventRequestMapper = (path: string, id = PROCESS_UUID) => {
   return (container: { event: DynamoDBStreamEvent }): HttpRequestBase => {
-    return {
-      hostname: 'lambda.amazonaws.com', // TODO: Is there a dynamodb stream events namespace?
-      method: 'POST',
-      path,
-      headers: {
-        [PROCESS_UUID_HEADER]: id,
-      },
-      body: container.event.Records.map<TypedDynamoDBRecord<any>>((record) => {
-        if (!record.dynamodb) {
-          return record as TypedDynamoDBRecord<any>;
+    const body: TypedDynamoDBStreamEvent<any> = {
+      Records: container.event.Records.reduce<TypedDynamoDBRecord<any>[]>((acc, record) => {
+        if (!record.dynamodb || !record.eventID || !record.eventName || !record.eventSourceARN || !record.awsRegion) {
+          return acc;
         }
-        return {
+
+        const tableName = dynamoDBStreamEventExtractTableName(record.eventSourceARN);
+        if (!tableName) {
+          return acc;
+        }
+
+        acc.push({
           dynamodb: {
+            Keys: record.dynamodb.Keys ? unmarshallDynamoDBImage(record.dynamodb.Keys) : undefined,
             New: record.dynamodb.NewImage ? unmarshallDynamoDBImage(record.dynamodb.NewImage) : undefined,
             Old: record.dynamodb.OldImage ? unmarshallDynamoDBImage(record.dynamodb.OldImage) : undefined,
           },
           eventID: record.eventID,
           eventName: record.eventName,
-        };
-      }),
+          eventSourceARN: record.eventSourceARN,
+          awsRegion: record.awsRegion,
+          tableName,
+        });
+        return acc;
+      }, []),
+    };
+
+    return {
+      hostname: 'dynamodb.amazonaws.com',
+      method: 'POST',
+      path,
+      headers: {
+        [PROCESS_UUID_HEADER]: id,
+      },
+      body,
     };
   };
 };

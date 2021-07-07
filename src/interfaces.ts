@@ -49,14 +49,18 @@ export interface DecodedJwtPayload extends JwtPayloadBase {
 export type HttpRequestWithUser = HttpRequest & { user: DecodedJwtPayload };
 
 export type TypedDynamoDBStreamRecord<T> = {
+  Keys?: { [key: string]: any };
   New?: T;
   Old?: T;
 };
 
 export type TypedDynamoDBRecord<T> = {
-  dynamodb?: TypedDynamoDBStreamRecord<T>;
-  eventID?: string;
-  eventName?: 'INSERT' | 'MODIFY' | 'REMOVE';
+  dynamodb: TypedDynamoDBStreamRecord<T>;
+  eventID: string;
+  eventName: 'INSERT' | 'MODIFY' | 'REMOVE';
+  eventSourceARN: string;
+  awsRegion: string;
+  tableName: string;
 };
 
 export type TypedDynamoDBStreamEvent<T> = {

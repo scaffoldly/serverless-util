@@ -6,6 +6,7 @@ import morganBody from 'morgan-body';
 import { ErrorResponse, ErrorResponseTracking } from './interfaces';
 import { XRAY_ENV_TRACE_ID } from './exports';
 import { HttpError } from './errors';
+import { MAPPED_EVENT_HEADER } from './constants';
 
 export interface CorsOptions {
   headers?: string[];
@@ -86,12 +87,22 @@ export function errorHandler(version: string) {
       httpError = new HttpError(500, err.message || 'Internal Server Error', err);
     }
 
-    res.status(httpError.statusCode).json({
+    const errorResponse: ErrorResponse = {
       message: httpError.message,
       traceId,
       tracking,
       context: httpError.context,
-    } as ErrorResponse);
+    };
+
+    if (req.header(MAPPED_EVENT_HEADER)) {
+      console.log(
+        'Error from mapped event (i.e. not an HTTP API invocation). Re-throwing error to trigger retries',
+        errorResponse,
+      );
+      throw err;
+    }
+
+    res.status(httpError.statusCode).json(errorResponse);
 
     next();
   };

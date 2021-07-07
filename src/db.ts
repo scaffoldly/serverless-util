@@ -30,7 +30,8 @@ export interface TableIndex {
 
 export class Table<T> {
   readonly model: Model<T>;
-  private tableName: string;
+  private tableSuffix: string;
+  public readonly tableName: string;
   private serviceName: string;
   private stage: string;
 
@@ -52,6 +53,7 @@ export class Table<T> {
     }
 
     this.tableName = createTableName(tableSuffix, serviceName, stage);
+    this.tableSuffix = tableSuffix;
     this.serviceName = serviceName;
     this.stage = stage;
 
@@ -68,7 +70,7 @@ export class Table<T> {
   }
 
   public matches(fullTableName: string): boolean {
-    return fullTableName === createTableName(this.tableName, this.serviceName, this.stage);
+    return fullTableName === createTableName(this.tableSuffix, this.serviceName, this.stage);
   }
 }
 

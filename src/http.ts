@@ -11,6 +11,27 @@ import { dynamoDBStreamEventExtractTableName, unmarshallDynamoDBImage } from './
 import { HttpError } from './errors';
 import { HttpRequest, HttpRequestBase, TypedDynamoDBRecord, TypedDynamoDBStreamEvent } from './interfaces';
 
+export const assertProcessUuid = (actual: string, expected = PROCESS_UUID): boolean => {
+  if (!actual) {
+    throw new Error('Missing Process UUID: actual is undefined');
+  }
+  if (!expected) {
+    throw new Error('Missing Process UUID: expected is undefined');
+  }
+  if (!actual.toLowerCase) {
+    throw new Error('Missing Process UUID: actual.toLowerCase is undefined');
+  }
+  if (!expected.toLowerCase) {
+    throw new Error('Missing Process UUID: expected.toLowerCase is undefined');
+  }
+
+  if (actual.toLowerCase() === expected.toLowerCase()) {
+    return true;
+  }
+
+  throw new Error(`Provided process UUID \`${actual}\` does not match expected process UUID or pro`);
+};
+
 export const constructServiceUrl = (request: HttpRequest, serviceName?: string, path?: string): string => {
   const { headers } = request;
   const { host } = headers;

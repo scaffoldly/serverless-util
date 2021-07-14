@@ -29,7 +29,7 @@ export const assertProcessUuid = (actual: string, expected = PROCESS_UUID): bool
     return true;
   }
 
-  throw new Error(`Provided process UUID \`${actual}\` does not match expected process UUID or pro`);
+  throw new Error(`Provided process UUID (${actual}) does not match expected process UUID`);
 };
 
 export const constructServiceUrl = (request: HttpRequest, serviceName?: string, path?: string): string => {

@@ -14,7 +14,7 @@ export interface CorsOptions {
   maxAge?: number;
 }
 
-export const createApp = ({ logHeaders = false }): Express => {
+export const createApp = ({ logHeaders = false } = {}): Express => {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json());

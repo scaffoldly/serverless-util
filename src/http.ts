@@ -1,6 +1,15 @@
+import { DynamoDBStreamEvent, SNSEvent } from 'aws-lambda';
 import { AUTH_PREFIXES } from './auth';
+import {
+  MAPPED_EVENT_DYNAMODB_STREAM,
+  MAPPED_EVENT_HEADER,
+  MAPPED_EVENT_SNS,
+  PROCESS_UUID,
+  PROCESS_UUID_HEADER,
+} from './constants';
+import { dynamoDBStreamEventExtractTableName, unmarshallDynamoDBImage } from './db';
 import { HttpError } from './errors';
-import { HttpRequest } from './interfaces';
+import { HttpRequest, HttpRequestBase, TypedDynamoDBRecord, TypedDynamoDBStreamEvent } from './interfaces';
 
 export const constructServiceUrl = (request: HttpRequest, serviceName?: string, path?: string): string => {
   const { headers } = request;
@@ -76,3 +85,64 @@ export const extractRequestToken = (request: HttpRequest): string => {
 
   return token;
 };
+
+export const dynamoDBStreamEventRequestMapper = (path: string, id = PROCESS_UUID) => {
+  return (container: { event: DynamoDBStreamEvent }): HttpRequestBase => {
+    const body: TypedDynamoDBStreamEvent<any> = {
+      Records: container.event.Records.reduce<TypedDynamoDBRecord<any>[]>((acc, record) => {
+        if (!record.dynamodb || !record.eventID || !record.eventName || !record.eventSourceARN || !record.awsRegion) {
+          return acc;
+        }
+
+        const tableName = dynamoDBStreamEventExtractTableName(record.eventSourceARN);
+        if (!tableName) {
+          return acc;
+        }
+
+        acc.push({
+          dynamodb: {
+            Keys: record.dynamodb.Keys ? unmarshallDynamoDBImage(record.dynamodb.Keys) : undefined,
+            New: record.dynamodb.NewImage ? unmarshallDynamoDBImage(record.dynamodb.NewImage) : undefined,
+            Old: record.dynamodb.OldImage ? unmarshallDynamoDBImage(record.dynamodb.OldImage) : undefined,
+          },
+          eventID: record.eventID,
+          eventName: record.eventName,
+          eventSourceARN: record.eventSourceARN,
+          awsRegion: record.awsRegion,
+          tableName,
+        });
+        return acc;
+      }, []),
+    };
+
+    return {
+      hostname: 'dynamodb.amazonaws.com',
+      method: 'POST',
+      path,
+      headers: {
+        [PROCESS_UUID_HEADER]: id,
+        [MAPPED_EVENT_HEADER]: MAPPED_EVENT_DYNAMODB_STREAM,
+      },
+      body,
+    };
+  };
+};
+
+export const snsEventRequestMapper = (path: string, id = PROCESS_UUID) => {
+  return (container: { event: SNSEvent }): HttpRequestBase => {
+    return {
+      hostname: 'sns.amazonaws.com',
+      method: 'POST',
+      path,
+      headers: {
+        [PROCESS_UUID_HEADER]: id,
+        [MAPPED_EVENT_HEADER]: MAPPED_EVENT_SNS,
+      },
+      body: container.event,
+    };
+  };
+};
+
+const emptyResponseMapper = () => () => {};
+export const dynamoDBStreamEventResponseMapper = emptyResponseMapper;
+export const snsEventResponseMapper = emptyResponseMapper;

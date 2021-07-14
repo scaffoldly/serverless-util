@@ -1,25 +1,13 @@
 import { define, Model } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './exports';
-import {
-  MAPPED_EVENT_DYNAMODB_STREAM,
-  MAPPED_EVENT_HEADER,
-  PROCESS_UUID,
-  PROCESS_UUID_HEADER,
-  SERVICE_NAME,
-  STAGE,
-} from './constants';
-import { AttributeValue, DynamoDBStreamEvent } from 'aws-lambda';
-import { HttpRequestBase, TypedDynamoDBRecord, TypedDynamoDBStreamEvent } from './interfaces';
+import { SERVICE_NAME, STAGE } from './constants';
+import { AttributeValue } from 'aws-lambda';
 import { Converter } from 'aws-sdk/clients/dynamodb';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
   return `${stage}-${serviceName}${tableSuffix ? `-${tableSuffix}` : ''}`;
 };
-
-export interface DynamoDBStreamEventContainer {
-  event: DynamoDBStreamEvent;
-}
 
 export interface TableIndex {
   hashKey: string;
@@ -91,49 +79,5 @@ export const unmarshallDynamoDBImage = <T>(
 ): T => {
   return AWS.DynamoDB.Converter.unmarshall(image, options) as T;
 };
-
-export const dynamoDBStreamEventRequestMapper = (path: string, id = PROCESS_UUID) => {
-  return (container: { event: DynamoDBStreamEvent }): HttpRequestBase => {
-    const body: TypedDynamoDBStreamEvent<any> = {
-      Records: container.event.Records.reduce<TypedDynamoDBRecord<any>[]>((acc, record) => {
-        if (!record.dynamodb || !record.eventID || !record.eventName || !record.eventSourceARN || !record.awsRegion) {
-          return acc;
-        }
-
-        const tableName = dynamoDBStreamEventExtractTableName(record.eventSourceARN);
-        if (!tableName) {
-          return acc;
-        }
-
-        acc.push({
-          dynamodb: {
-            Keys: record.dynamodb.Keys ? unmarshallDynamoDBImage(record.dynamodb.Keys) : undefined,
-            New: record.dynamodb.NewImage ? unmarshallDynamoDBImage(record.dynamodb.NewImage) : undefined,
-            Old: record.dynamodb.OldImage ? unmarshallDynamoDBImage(record.dynamodb.OldImage) : undefined,
-          },
-          eventID: record.eventID,
-          eventName: record.eventName,
-          eventSourceARN: record.eventSourceARN,
-          awsRegion: record.awsRegion,
-          tableName,
-        });
-        return acc;
-      }, []),
-    };
-
-    return {
-      hostname: 'dynamodb.amazonaws.com',
-      method: 'POST',
-      path,
-      headers: {
-        [PROCESS_UUID_HEADER]: id,
-        [MAPPED_EVENT_HEADER]: MAPPED_EVENT_DYNAMODB_STREAM,
-      },
-      body,
-    };
-  };
-};
-
-export const dynamoDBStreamEventResponseMapper = () => () => {};
 
 export { Model };

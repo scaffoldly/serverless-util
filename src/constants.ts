@@ -9,6 +9,7 @@ export { serviceName as SERVICE_NAME, stage as STAGE };
 
 export const MAPPED_EVENT_HEADER = 'x-mapped-event';
 export const MAPPED_EVENT_DYNAMODB_STREAM = 'dynamodb-stream-event';
+export const MAPPED_EVENT_SNS = 'sns-event';
 
 export const PROCESS_UUID_HEADER = 'x-process-uuid';
 export const PROCESS_UUID = uuid();

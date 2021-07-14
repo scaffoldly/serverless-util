@@ -8,10 +8,17 @@ import { XRAY_ENV_TRACE_ID } from './exports';
 import { HttpError } from './errors';
 import { MAPPED_EVENT_HEADER } from './constants';
 
+type StaticOrigin = boolean | string | RegExp | (string | RegExp)[];
+type CustomOrigin = (
+  requestOrigin: string | undefined,
+  callback: (err: Error | null, origin?: StaticOrigin) => void,
+) => void;
+
 export interface CorsOptions {
   headers?: string[];
   withCredentials?: boolean;
   maxAge?: number;
+  origin?: StaticOrigin | CustomOrigin;
 }
 
 export const createApp = ({ logHeaders = false } = {}): Express => {
@@ -44,7 +51,7 @@ export function corsHandler(options: CorsOptions = {}): (
   next: (err?: any) => any,
 ) => void {
   return cors({
-    origin: true,
+    origin: options.origin ? options.origin : true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
     maxAge: options.maxAge ? options.maxAge : 7200,
     allowedHeaders: [

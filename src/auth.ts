@@ -51,6 +51,32 @@ export const verifyAudience = (domain: string, aud: string): boolean => {
   return false;
 };
 
+export const parseAudience = (aud: string): { domain?: string; id?: string } => {
+  if (!aud) {
+    console.warn('Missing audience');
+    return {};
+  }
+
+  const parts = aud.split(':');
+  if (parts.length !== 4) {
+    console.warn('Unable to parse audience:', parts);
+    return {};
+  }
+
+  const [, , domain, id] = parts;
+  if (!domain) {
+    console.warn('Unable to find domain in audience');
+    return {};
+  }
+
+  if (!id) {
+    console.warn('Unable to find id in audience');
+    return { domain };
+  }
+
+  return { domain, id };
+};
+
 export function authorize(domain?: string) {
   // TODO: Support Scopes
   return async (request: HttpRequest, securityName: string, _scopes?: string[]): Promise<DecodedJwtPayload> => {

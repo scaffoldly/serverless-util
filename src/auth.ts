@@ -8,6 +8,7 @@ import { DecodedJwtPayload, HttpRequest } from './interfaces';
 import { extractAuthorization, extractToken } from './http';
 
 export const URN_PREFIX = 'urn';
+export const AUTH_AUDIENCE_PROVIDER = 'auth';
 export const AUTH_PREFIXES = ['Bearer', 'jwt', 'Token'];
 
 const authCache: { [key: string]: { payload: DecodedJwtPayload; expires: Moment } } = {};
@@ -24,7 +25,49 @@ const createCacheKey = (token: string, request: HttpRequest): { key: string; met
   return { key: sha.digest('base64'), method: key.method, path: key.path };
 };
 
-export const generateAudience = (domain: string, id: string): string => `${URN_PREFIX}:auth:${domain}:${id}`;
+export const generateSubject = (domain: string, provider: string, id: string): string =>
+  `${URN_PREFIX}:${provider}:${domain}:${id}`;
+
+export const generateAudience = (domain: string, id: string): string =>
+  generateSubject(domain, AUTH_AUDIENCE_PROVIDER, id);
+
+export const parseUrn = (urn: string): { prefix?: string; domain?: string; provider?: string; id?: string } => {
+  if (!urn) {
+    console.warn('Missing urn');
+    return {};
+  }
+
+  const parts = urn.split(':');
+  if (parts.length < 4) {
+    console.warn('Unable to parse urn:', parts);
+    return {};
+  }
+
+  const [prefix, provider, domain] = parts;
+
+  if (!prefix) {
+    console.warn('Unable to find prefix in urn');
+    return {};
+  }
+
+  if (!provider) {
+    console.warn('Unable to find provider in urn');
+    return { prefix };
+  }
+
+  if (!domain) {
+    console.warn('Unable to find domain in urn');
+    return { prefix, provider };
+  }
+
+  const tail = parts.slice(3).join(':');
+  if (!tail) {
+    console.warn('Unable to find id in urn');
+    return { prefix, provider, domain };
+  }
+
+  return { prefix, provider, domain, id: tail };
+};
 
 export const verifyAudience = (domain: string, aud: string): boolean => {
   if (!aud) {
@@ -32,15 +75,20 @@ export const verifyAudience = (domain: string, aud: string): boolean => {
     return false;
   }
 
-  const parts = aud.split(':');
-  if (parts.length < 4) {
-    console.warn('Unable to parse audience:', parts);
+  const { prefix, provider, domain: checkDomain } = parseUrn(aud);
+
+  if (prefix !== URN_PREFIX) {
+    console.warn(`Urn prefix mismatch. Got ${prefix}, expected ${URN_PREFIX}`);
     return false;
   }
 
-  const [, , checkDomain] = parts;
+  if (provider !== AUTH_AUDIENCE_PROVIDER) {
+    console.warn(`Provider mismatch. Got ${provider}, expected ${AUTH_AUDIENCE_PROVIDER}`);
+  }
+
   if (!checkDomain) {
     console.warn('Unable to find domain in audience');
+    return false;
   }
 
   if (checkDomain === domain) {
@@ -49,32 +97,6 @@ export const verifyAudience = (domain: string, aud: string): boolean => {
 
   console.warn(`Domain mismatch. Got ${checkDomain}, expected ${domain}`);
   return false;
-};
-
-export const parseAudience = (aud: string): { domain?: string; id?: string } => {
-  if (!aud) {
-    console.warn('Missing audience');
-    return {};
-  }
-
-  const parts = aud.split(':');
-  if (parts.length !== 4) {
-    console.warn('Unable to parse audience:', parts);
-    return {};
-  }
-
-  const [, , domain, id] = parts;
-  if (!domain) {
-    console.warn('Unable to find domain in audience');
-    return {};
-  }
-
-  if (!id) {
-    console.warn('Unable to find id in audience');
-    return { domain };
-  }
-
-  return { domain, id };
 };
 
 export function authorize(domain?: string) {

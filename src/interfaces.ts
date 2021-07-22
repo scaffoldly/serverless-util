@@ -66,3 +66,39 @@ export type TypedDynamoDBRecord<T> = {
 export type TypedDynamoDBStreamEvent<T> = {
   Records: TypedDynamoDBRecord<T>[];
 };
+
+export type TypedSNSMessageAttribute = {
+  Type: string;
+  Value: string;
+};
+
+export type TypedSNSMessageAttributes = {
+  [name: string]: TypedSNSMessageAttribute;
+};
+
+export type TypedSNSMessage<T> = {
+  SignatureVersion: string;
+  Timestamp: string;
+  Signature: string;
+  SigningCertUrl: string;
+  MessageId: string;
+  Message: string;
+  MessageAttributes: TypedSNSMessageAttributes;
+  Type: string;
+  UnsubscribeUrl: string;
+  TopicArn: string;
+  Subject: string;
+  Object: T;
+  TopicName: string;
+};
+
+export type TypedSNSEventRecord<T> = {
+  EventVersion: string;
+  EventSubscriptionArn: string;
+  EventSource: string;
+  Sns: TypedSNSMessage<T>;
+};
+
+export type TypedSNSEvent<T> = {
+  Records: TypedSNSEventRecord<T>[];
+};

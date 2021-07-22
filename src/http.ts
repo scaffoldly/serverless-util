@@ -9,7 +9,14 @@ import {
 } from './constants';
 import { dynamoDBStreamEventExtractTableName, unmarshallDynamoDBImage } from './db';
 import { HttpError } from './errors';
-import { HttpRequest, HttpRequestBase, TypedDynamoDBRecord, TypedDynamoDBStreamEvent } from './interfaces';
+import {
+  HttpRequest,
+  HttpRequestBase,
+  TypedDynamoDBRecord,
+  TypedDynamoDBStreamEvent,
+  TypedSNSEvent,
+  TypedSNSEventRecord,
+} from './interfaces';
 
 export const assertProcessUuid = (actual: string, expected = PROCESS_UUID): boolean => {
   if (!actual) {
@@ -149,8 +156,41 @@ export const dynamoDBStreamEventRequestMapper = (path: string, id = PROCESS_UUID
   };
 };
 
+export const snsExtractTopicName = (topicArn: string): string | undefined => {
+  // TODO Proper ARN Parser
+  if (!topicArn) {
+    return;
+  }
+  const parts = topicArn.split(':');
+  if (parts.length !== 6) {
+    return;
+  }
+  return parts[5];
+};
+
 export const snsEventRequestMapper = (path: string, id = PROCESS_UUID) => {
   return (container: { event: SNSEvent }): HttpRequestBase => {
+    const body: TypedSNSEvent<any> = {
+      Records: container.event.Records.reduce<TypedSNSEventRecord<any>[]>((acc, record) => {
+        const topicName = snsExtractTopicName(record.Sns.TopicArn);
+        if (!topicName) {
+          return acc;
+        }
+
+        // TODO Verify Signature
+
+        acc.push({
+          ...record,
+          Sns: {
+            ...record.Sns,
+            Object: JSON.parse(record.Sns.Message),
+            TopicName: topicName,
+          },
+        });
+        return acc;
+      }, []),
+    };
+
     return {
       hostname: 'sns.amazonaws.com',
       method: 'POST',
@@ -159,7 +199,7 @@ export const snsEventRequestMapper = (path: string, id = PROCESS_UUID) => {
         [PROCESS_UUID_HEADER]: id,
         [MAPPED_EVENT_HEADER]: MAPPED_EVENT_SNS,
       },
-      body: container.event,
+      body,
     };
   };
 };

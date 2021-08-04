@@ -61,6 +61,7 @@ export function corsHandler(options: CorsOptions = {}): (
       'X-Api-Key',
       'X-Amz-Security-Token',
       'X-Amz-User-Agent',
+      'X-Retry',
       ...(options.headers && options.headers.length ? options.headers : []),
     ],
     credentials: options.withCredentials,

@@ -91,6 +91,8 @@ export function errorHandler(version: string) {
       httpError = new HttpError(err.status, 'Validation Failed', { fields: err.fields });
     } else if (err.statusCode) {
       httpError = new HttpError(err.statusCode, err.message || err.name, err);
+    } else if (err.isAxiosError && err.response && err.response.status && err.response.statusText) {
+      httpError = new HttpError(err.response.status, err.message, err.response.data);
     } else {
       httpError = new HttpError(500, err.message || 'Internal Server Error', err);
     }

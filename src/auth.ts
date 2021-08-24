@@ -31,6 +31,18 @@ export const generateSubject = (domain: string, provider: string, id: string): s
 export const generateAudience = (domain: string, id: string): string =>
   generateSubject(domain, AUTH_AUDIENCE_PROVIDER, id);
 
+export const userId = (jwtPayload: DecodedJwtPayload, defaultOnAbsent?: string): string => {
+  if (!jwtPayload || !jwtPayload.id) {
+    if (defaultOnAbsent) {
+      console.warn(`Missing JWT payload, returning default: ${defaultOnAbsent}`);
+      return defaultOnAbsent;
+    }
+    throw new HttpError(400, 'Missing id from JWT payload', jwtPayload);
+  }
+
+  return jwtPayload.id;
+};
+
 export const parseUrn = (urn: string): { prefix?: string; domain?: string; provider?: string; id?: string } => {
   if (!urn) {
     console.warn('Missing urn');

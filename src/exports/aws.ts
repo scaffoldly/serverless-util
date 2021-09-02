@@ -30,10 +30,10 @@ export const KMS = async (region?: string) => {
     console.log('Creating aws/lambda KMS key');
     try {
       const key = await kms.createKey({ KeyUsage: 'ENCRYPT_DECRYPT', Description: 'aws/lambda' }).promise();
-      if (!key || !key.KeyMetadata) {
+      if (!key || !key.KeyMetadata || !key.KeyMetadata.Arn) {
         throw new Error('Missing metadata while creating aws/lambda key');
       }
-      await kms.createAlias({ TargetKeyId: key.KeyMetadata.KeyId, AliasName: 'aws/lambda' }).promise();
+      await kms.createAlias({ TargetKeyId: key.KeyMetadata.Arn, AliasName: 'aws/lambda' }).promise();
     } catch (e2) {
       console.warn('Unable to create aws/lambda KMS key', e2.message);
     }

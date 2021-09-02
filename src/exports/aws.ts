@@ -13,7 +13,7 @@ if (STAGE !== 'local') {
   AWSXRay.captureHTTPsGlobal(http, true);
 }
 
-export const KMS = (region?: string) => {
+export const KMS = async (region?: string) => {
   if (!boolean(LOCALSTACK)) {
     return new AWS.KMS({ region: region });
   }
@@ -21,44 +21,28 @@ export const KMS = (region?: string) => {
   console.warn('Using Localstack');
   const kms = new AWS.KMS({ endpoint: 'http://localhost:4566', region });
 
-  kms
-    .describeKey({ KeyId: 'aws/lambda' })
-    .promise()
-    .then((key) => {
-      if (key && key.KeyMetadata) {
-        console.info('Using aws/lambda KMS key:', key.KeyMetadata.KeyId);
-        return;
+  try {
+    const key = await kms.describeKey({ KeyId: 'aws/lambda' }).promise();
+    if (!key || !key.KeyMetadata) {
+      throw new Error('Missing metadata while describing aws/lambda key');
+    }
+  } catch (e) {
+    console.log('Creating aws/lambda KMS key', e.message);
+    try {
+      const key = await kms.createKey({ KeyUsage: 'ENCRYPT_DECRYPT' }).promise();
+      if (!key || !key.KeyMetadata) {
+        throw new Error('Missing metadata while creating aws/lambda key');
       }
-      kms
-        .createKey({ KeyUsage: 'ENCRYPT_DECRYPT' })
-        .promise()
-        .then((createdKey) => {
-          if (createdKey && createdKey.KeyMetadata) {
-            kms
-              .createAlias({ TargetKeyId: createdKey.KeyMetadata.KeyId, AliasName: 'aws/lambda' })
-              .promise()
-              .then(() => {
-                console.info('Created aws/lamda KMS key');
-              })
-              .catch((e) => {
-                throw e;
-              });
-            return;
-          }
-          throw new Error('Unable to create aws/lambda KMS key');
-        })
-        .catch((e) => {
-          throw e;
-        });
-    })
-    .catch((e) => {
-      console.error('Unable to create aws/lambda key', e.message);
-    });
+      await kms.createAlias({ TargetKeyId: key.KeyMetadata.KeyId, AliasName: 'aws/lambda' }).promise();
+    } catch (e) {
+      console.warn('Unable to create aws/lambda KMS key', e.message);
+    }
+  }
 
   return kms;
 };
 
-export const S3 = (region?: string) => {
+export const S3 = async (region?: string) => {
   if (!boolean(LOCALSTACK)) {
     return new AWS.S3({ region: region });
   }
@@ -67,7 +51,7 @@ export const S3 = (region?: string) => {
   return new AWS.S3({ endpoint: 'http://localhost:4566', region });
 };
 
-export const SES = (region?: string) => {
+export const SES = async (region?: string) => {
   if (!boolean(LOCALSTACK)) {
     return new AWS.SES({ region: region });
   }
@@ -76,7 +60,7 @@ export const SES = (region?: string) => {
   return new AWS.SES({ endpoint: 'http://localhost:4566', region });
 };
 
-export const SNS = (region?: string) => {
+export const SNS = async (region?: string) => {
   if (!boolean(LOCALSTACK)) {
     return new AWS.SNS({ region: region });
   }

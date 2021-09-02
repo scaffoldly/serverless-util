@@ -35,7 +35,7 @@ export const KMS = (region?: string) => {
         .then((createdKey) => {
           if (createdKey && createdKey.KeyMetadata) {
             kms
-              .createAlias({ TargetKeyId: createdKey.KeyMetadata?.KeyId, AliasName: 'aws/lambda' })
+              .createAlias({ TargetKeyId: createdKey.KeyMetadata.KeyId, AliasName: 'aws/lambda' })
               .promise()
               .then(() => {
                 console.info('Created aws/lamda KMS key');

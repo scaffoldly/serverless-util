@@ -1,6 +1,6 @@
 import * as AWSXRay from 'aws-xray-sdk-core';
 import * as _AWS from 'aws-sdk';
-import { STAGE } from '../constants';
+import { STAGE, STAGE_DOMAIN } from '../constants';
 import * as http from 'http';
 import { boolean } from 'boolean';
 
@@ -57,7 +57,13 @@ export const SES = async (region?: string) => {
   }
 
   console.warn('Using Localstack');
-  return new AWS.SES({ endpoint: 'http://localhost:4566', region });
+  const ses = new AWS.SES({ endpoint: 'http://localhost:4566', region });
+
+  console.log(`Adding domain verification for slyses.${STAGE_DOMAIN}`);
+  // This request is idempotent so we don't have to check for an existing domain identity
+  await ses.verifyDomainIdentity({ Domain: `slyses.${STAGE_DOMAIN}` }).promise();
+
+  return ses;
 };
 
 export const SNS = async (region?: string) => {

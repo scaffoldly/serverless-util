@@ -1,17 +1,19 @@
 import { v4 as uuid } from 'uuid';
 
-const { SERVICE_NAME, STAGE, API_GATEWAY_DOMAIN, STAGE_DOMAIN } = process.env;
+const { SERVICE_NAME, STAGE, API_GATEWAY_DOMAIN, STAGE_DOMAIN, SERVICE_SLUG } = process.env;
 
 const serviceName = SERVICE_NAME || 'unknown-service';
 const stage = STAGE || 'local';
 const apiGatewayDomain = API_GATEWAY_DOMAIN || 'localhost';
 const stageDomain = STAGE_DOMAIN || 'localhost';
+const serviceSlug = SERVICE_SLUG || 'unknown-slug';
 
 export {
   serviceName as SERVICE_NAME,
   stage as STAGE,
   apiGatewayDomain as API_GATEWAY_DOMAIN,
   stageDomain as STAGE_DOMAIN,
+  serviceSlug as SERVICE_SLUG,
 };
 
 export const MAPPED_EVENT_HEADER = 'x-mapped-event';

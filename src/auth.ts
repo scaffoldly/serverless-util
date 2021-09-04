@@ -4,14 +4,16 @@ import axios from 'axios';
 
 import crypto from 'crypto';
 import moment, { Moment } from 'moment';
-import { DecodedJwtPayload, HttpRequest } from './interfaces';
+import { BaseJwtPayload, HttpRequest } from './interfaces';
 import { extractAuthorization, extractToken } from './http';
+import { STAGE } from './constants';
 
 export const URN_PREFIX = 'urn';
 export const AUTH_AUDIENCE_PROVIDER = 'auth';
 export const AUTH_PREFIXES = ['Bearer', 'jwt', 'Token'];
 
-const authCache: { [key: string]: { payload: DecodedJwtPayload; expires: Moment } } = {};
+// TODO: External shared cache
+const authCache: { [key: string]: { payload: BaseJwtPayload; expires: Moment } } = {};
 
 const createCacheKey = (token: string, request: HttpRequest): { key: string; method: string; path: string } => {
   const key = {
@@ -25,14 +27,43 @@ const createCacheKey = (token: string, request: HttpRequest): { key: string; met
   return { key: sha.digest('base64'), method: key.method, path: key.path };
 };
 
-export const generateSubject = (domain: string, provider: string, id: string): string =>
-  `${URN_PREFIX}:${provider}:${domain}:${id}`;
+export const cookieDomain = (httpRequest: HttpRequest) => {
+  const host = httpRequest.header('host');
+  if (!host) {
+    throw new HttpError(400, 'Missing host header');
+  }
+  return host.split(':')[0];
+};
 
-export const generateAudience = (domain: string, id: string): string =>
-  generateSubject(domain, AUTH_AUDIENCE_PROVIDER, id);
+export const cookiePrefix = (name: string) => {
+  if (STAGE === 'local') {
+    return name;
+  }
 
-export const userId = (jwtPayload: DecodedJwtPayload, defaultOnAbsent?: string): string => {
-  if (!jwtPayload || !jwtPayload.id) {
+  return `__Secure-${name}`;
+};
+
+export const cookieSecure = () => {
+  if (STAGE === 'local') {
+    return false;
+  }
+
+  return true;
+};
+
+export const cookieSameSite = () => {
+  if (STAGE === 'local') {
+    return 'lax';
+  }
+  return 'none';
+};
+
+export const generateSubject = (audience: string, userId: string): string => `${audience}:${userId}`;
+
+export const generateAudience = (domain: string, provider: string): string => `${URN_PREFIX}:${provider}:${domain}`;
+
+export const extractUserId = (jwtPayload: BaseJwtPayload, defaultOnAbsent?: string): string => {
+  if (!jwtPayload || !jwtPayload.sub) {
     if (defaultOnAbsent) {
       console.warn(`Missing JWT payload, returning default: ${defaultOnAbsent}`);
       return defaultOnAbsent;
@@ -40,10 +71,10 @@ export const userId = (jwtPayload: DecodedJwtPayload, defaultOnAbsent?: string):
     throw new HttpError(400, 'Missing id from JWT payload', jwtPayload);
   }
 
-  return jwtPayload.id;
+  return jwtPayload.sub.split(':').slice(-1)[0];
 };
 
-export const parseUrn = (urn: string): { prefix?: string; domain?: string; provider?: string; id?: string } => {
+export const parseUrn = (urn: string): { prefix?: string; domain?: string; provider?: string } => {
   if (!urn) {
     console.warn('Missing urn');
     return {};
@@ -72,13 +103,7 @@ export const parseUrn = (urn: string): { prefix?: string; domain?: string; provi
     return { prefix, provider };
   }
 
-  const tail = parts.slice(3).join(':');
-  if (!tail) {
-    console.warn('Unable to find id in urn');
-    return { prefix, provider, domain };
-  }
-
-  return { prefix, provider, domain, id: tail };
+  return { prefix, provider, domain };
 };
 
 export const verifyAudience = (domain: string, aud: string): boolean => {
@@ -111,16 +136,17 @@ export const verifyAudience = (domain: string, aud: string): boolean => {
   return false;
 };
 
+// TODO Lambda Authorizer
 export function authorize(domain?: string) {
   // TODO: Support Scopes
-  return async (request: HttpRequest, securityName: string, _scopes?: string[]): Promise<DecodedJwtPayload> => {
+  return async (request: HttpRequest, securityName: string, _scopes?: string[]): Promise<BaseJwtPayload> => {
     if (securityName !== 'jwt') {
       throw new Error(`Unsupported Security Name: ${securityName}`);
     }
 
     const authorization = extractAuthorization(request);
     if (!authorization) {
-      throw new HttpError(401, 'Missing authorization header');
+      throw new HttpError(401, 'Unauthorized');
     }
 
     const token = extractToken(authorization);
@@ -128,13 +154,13 @@ export function authorize(domain?: string) {
       throw new HttpError(400, 'Unable to extract token');
     }
 
-    const decoded = JWT.decode(token) as DecodedJwtPayload;
+    const decoded = JWT.decode(token) as BaseJwtPayload;
     if (!decoded) {
       throw new HttpError(400, 'Unable to decode token');
     }
 
     if (domain && !verifyAudience(domain, decoded.aud)) {
-      throw new HttpError(401, 'Audience mismatch');
+      throw new HttpError(401, 'Unauthorized');
     }
 
     const cacheKey = createCacheKey(token, request);
@@ -147,30 +173,18 @@ export function authorize(domain?: string) {
       }
     }
 
-    const { authorizeUrl } = decoded;
-    if (!authorizeUrl) {
-      throw new Error('Missing authorizeUrl in token payload');
+    const { iss } = decoded;
+    if (!iss) {
+      throw new Error('Missing issuer in token payload');
     }
 
-    console.log(`Authorizing ${decoded.aud} externally to ${authorizeUrl}`);
+    console.log(`Authorizing ${decoded.sub} externally to ${iss}`);
 
-    const { data } = await axios.post(authorizeUrl, {
-      token,
-    });
+    const { data: payload } = await axios.post(iss, { token });
 
-    console.log(`Authorization response`, data);
+    console.log(`Authorization response`, payload);
 
-    const { authorized, payload, error } = data;
-
-    if (error) {
-      throw error;
-    }
-
-    if (!authorized) {
-      throw new HttpError(401, 'Unauthorized');
-    }
-
-    const ret = payload as DecodedJwtPayload;
+    const ret = payload as BaseJwtPayload;
 
     authCache[cacheKey.key] = { payload, expires: moment(ret.exp * 1000) };
 

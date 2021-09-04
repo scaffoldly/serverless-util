@@ -39,13 +39,17 @@ export const assertProcessUuid = (actual: string, expected = PROCESS_UUID): bool
   throw new Error(`Provided process UUID (${actual}) does not match expected process UUID`);
 };
 
-export const constructServiceUrl = (request: HttpRequest, serviceName?: string, path?: string): string => {
+export const constructServiceUrl = (request: HttpRequest, serviceSlug: string, path?: string): string => {
   const { headers } = request;
   const { host } = headers;
   const ssl = headers['x-forwarded-proto'] === 'https';
 
-  // TODO Use URI Builder
-  return `${ssl ? 'https' : 'http'}://${host}${serviceName ? `/${serviceName}` : ''}${path ? path : ''}`;
+  let actualPath = path || '';
+  if (!actualPath.startsWith('/') && actualPath.length !== 0) {
+    actualPath = `/${actualPath}`;
+  }
+
+  return `${ssl ? 'https' : 'http'}://${host}/${serviceSlug}${actualPath}`;
 };
 
 export const extractAuthorization = (request: HttpRequest): string | null => {

@@ -29,24 +29,17 @@ export interface ErrorResponse {
 
 export type CleansedObject = { [key: string]: string | number | boolean };
 
-export interface JwtPayloadBase extends CleansedObject {
-  id: string;
-  sk: string;
-  refreshUrl: string;
-  authorizeUrl: string;
-  certsUrl: string;
-  sessionId: string;
-}
-
-export interface DecodedJwtPayload extends JwtPayloadBase {
+export type BaseJwtPayload = {
+  iss: string;
   sub: string;
   aud: string;
-  iss: string;
-  iat: number;
   exp: number;
-}
+  nbf?: number;
+  iat: number;
+  jti: string;
+};
 
-export type HttpRequestWithUser = HttpRequest & { user: DecodedJwtPayload };
+export type HttpRequestWithUser = HttpRequest & { user: BaseJwtPayload };
 
 export type TypedDynamoDBStreamRecord<T> = {
   Keys?: { [key: string]: any };

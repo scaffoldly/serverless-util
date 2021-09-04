@@ -1,7 +1,6 @@
-import { AWS } from './exports';
+import { boolean } from 'boolean';
 import { SERVICE_NAME, STAGE } from './constants';
-
-const secretsmanager: AWS.SecretsManager = new AWS.SecretsManager();
+import { LOCALSTACK, SecretsManager } from './exports';
 
 const cache: any = {};
 
@@ -39,12 +38,14 @@ export const GetSecret = async (key: string, serviceName = SERVICE_NAME, stage =
     return cached;
   }
 
-  if (stage === 'local') {
+  if (stage === 'local' && !boolean(LOCALSTACK)) {
     return GetSecretFromEnv(key);
   }
 
+  const secretsManager = await SecretsManager();
+
   try {
-    const secretResponse = await secretsmanager
+    const secretResponse = await secretsManager
       .getSecretValue({
         SecretId: `lambda/${stage}/${serviceName}`,
       })
@@ -73,7 +74,7 @@ export const GetSecret = async (key: string, serviceName = SERVICE_NAME, stage =
 export const SetSecret = async (key: string, value: string, base64Encode = false) => {
   const _value = base64Encode ? Buffer.from(value, 'utf8').toString('base64') : value;
 
-  if (STAGE === 'local') {
+  if (STAGE === 'local' && !boolean(LOCALSTACK)) {
     if (!cache[STAGE]) {
       cache[STAGE] = {};
     }
@@ -89,8 +90,10 @@ export const SetSecret = async (key: string, value: string, base64Encode = false
     return _value;
   }
 
+  const secretsManager = await SecretsManager();
+
   try {
-    const secretResponse = await secretsmanager
+    const secretResponse = await secretsManager
       .getSecretValue({
         SecretId: `lambda/${STAGE}/${SERVICE_NAME}`,
       })
@@ -106,7 +109,7 @@ export const SetSecret = async (key: string, value: string, base64Encode = false
 
     secrets[key] = _value;
 
-    await secretsmanager
+    await secretsManager
       .putSecretValue({ SecretId: `lambda/${STAGE}/${SERVICE_NAME}`, SecretString: JSON.stringify(secrets) })
       .promise();
 

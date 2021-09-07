@@ -81,7 +81,7 @@ export const parseUrn = (urn: string): { prefix?: string; domain?: string; provi
   }
 
   const parts = urn.split(':');
-  if (parts.length < 4) {
+  if (parts.length < 3) {
     console.warn('Unable to parse urn:', parts);
     return {};
   }

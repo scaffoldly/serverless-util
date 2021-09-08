@@ -9,9 +9,9 @@ export type EncryptedValue = {
 export const encryptValue = async (value: string, keyId?: string): Promise<EncryptedValue> => {
   const kms = await KMS();
 
-  const encryptResult = await kms
-    .encrypt({ KeyId: keyId || `alias/${STAGE}`, Plaintext: Buffer.from(value, 'utf-8') })
-    .promise();
+  const KeyId = keyId || `alias/${STAGE}`;
+
+  const encryptResult = await kms.encrypt({ KeyId, Plaintext: Buffer.from(value, 'utf-8') }).promise();
 
   if (!encryptResult.KeyId) {
     throw new Error('Missing key id in encryption response');
@@ -22,7 +22,7 @@ export const encryptValue = async (value: string, keyId?: string): Promise<Encry
   }
 
   return {
-    keyId: encryptResult.KeyId,
+    keyId: KeyId,
     value: encryptResult.CiphertextBlob.toString('base64'),
   };
 };

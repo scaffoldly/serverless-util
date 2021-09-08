@@ -41,9 +41,9 @@ export const KMS = async (region: string = 'us-east-1'): Promise<AWS.KMS> => {
     return kms;
   }
 
-  const keyAlias = 'alias/aws/lambda';
+  const keyAlias = `alias/${STAGE}`;
   try {
-    let key = await kms.describeKey({ KeyId: 'alias/aws/lambda' }).promise();
+    let key = await kms.describeKey({ KeyId: keyAlias }).promise();
     if (!key || !key.KeyMetadata) {
       throw new Error('Missing metadata while describing aws/lambda key');
     }

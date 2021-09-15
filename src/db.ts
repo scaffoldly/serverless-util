@@ -66,6 +66,9 @@ export const dynamoDBStreamEventExtractTableName = (eventSourceARN: string): str
   if (!eventSourceARN) {
     return;
   }
+  if (eventSourceARN.indexOf('/') === -1) {
+    return eventSourceARN.split(':').slice(-1)[0];
+  }
   const parts = eventSourceARN.split('/');
   if (parts.length !== 4) {
     return;

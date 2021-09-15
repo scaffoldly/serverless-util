@@ -189,6 +189,7 @@ export const snsEventRequestMapper = (path: string, id = PROCESS_UUID) => {
           ...record,
           Sns: {
             ...record.Sns,
+            Subject: record.Sns.Subject || '',
             Object: obj,
             TopicName: topicName,
           },

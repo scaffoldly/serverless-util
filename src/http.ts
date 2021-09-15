@@ -178,12 +178,18 @@ export const snsEventRequestMapper = (path: string, id = PROCESS_UUID) => {
         }
 
         // TODO Verify Signature
+        let obj: any = undefined;
+        try {
+          obj = JSON.parse(record.Sns.Message);
+        } catch (e) {
+          console.warn('Unable to parse message into JSON');
+        }
 
         acc.push({
           ...record,
           Sns: {
             ...record.Sns,
-            Object: JSON.parse(record.Sns.Message),
+            Object: obj,
             TopicName: topicName,
           },
         });

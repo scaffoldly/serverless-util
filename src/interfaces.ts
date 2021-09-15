@@ -88,7 +88,7 @@ export type TypedSNSMessage<T> = {
   UnsubscribeUrl: string;
   TopicArn: string;
   Subject: string;
-  Object: T;
+  Object?: T;
   TopicName: string;
 };
 

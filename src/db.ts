@@ -77,9 +77,12 @@ export const dynamoDBStreamEventExtractTableName = (eventSourceARN: string): str
 };
 
 export const unmarshallDynamoDBImage = <T>(
-  image: { [key: string]: AttributeValue },
+  image?: { [key: string]: AttributeValue },
   options?: Converter.ConverterOptions,
 ): T => {
+  if (!image) {
+    throw new Error('Unable to unmarshall an empty object');
+  }
   return AWS.DynamoDB.Converter.unmarshall(image, options) as T;
 };
 

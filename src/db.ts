@@ -2,7 +2,7 @@ import { define, Model } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './exports';
 import { SERVICE_NAME, STAGE } from './constants';
-import { AttributeValue } from 'aws-lambda';
+import { AttributeValue, DynamoDBRecord } from 'aws-lambda';
 import { Converter } from 'aws-sdk/clients/dynamodb';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
@@ -84,6 +84,40 @@ export const unmarshallDynamoDBImage = <T>(
     throw new Error('Unable to unmarshall an empty object');
   }
   return AWS.DynamoDB.Converter.unmarshall(image, options) as T;
+};
+
+export type HandleFn = (record: DynamoDBRecord) => boolean;
+
+export type StreamRecordHandlers<T> = {
+  canHandle: HandleFn;
+  onInsert?: (t: T) => Promise<T>;
+  onModify?: (newT: T, oldT: T) => Promise<T>;
+  onRemove?: (t: T) => Promise<T>;
+};
+
+export const handleDynamoDBStreamRecord = <T>(
+  record: DynamoDBRecord,
+  handlers: StreamRecordHandlers<T>,
+): Promise<T> => {
+  if (!record || !record.dynamodb) {
+    throw new Error('Invalid record');
+  }
+  if (handlers.canHandle(record)) {
+    if (record.eventName === 'INSERT' && handlers.onInsert) {
+      return handlers.onInsert(unmarshallDynamoDBImage(record.dynamodb.NewImage));
+    }
+    if (record.eventName === 'MODIFY' && handlers.onModify) {
+      return handlers.onModify(
+        unmarshallDynamoDBImage(record.dynamodb.NewImage),
+        unmarshallDynamoDBImage(record.dynamodb.OldImage),
+      );
+    }
+    if (record.eventName === 'REMOVE' && handlers.onRemove) {
+      return handlers.onRemove(unmarshallDynamoDBImage(record.dynamodb.OldImage));
+    }
+  }
+
+  throw new Error('Unhandled record');
 };
 
 export { Model };

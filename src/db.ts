@@ -4,7 +4,6 @@ import { AWS } from './exports';
 import { SERVICE_NAME, STAGE } from './constants';
 import { AttributeValue, DynamoDBRecord } from 'aws-lambda';
 import { Converter } from 'aws-sdk/clients/dynamodb';
-import { resolve } from 'path';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
   return `${stage}-${serviceName}${tableSuffix ? `-${tableSuffix}` : ''}`;

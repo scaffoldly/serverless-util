@@ -2,7 +2,7 @@ import { define, Model } from 'dynamodb';
 import Joi from 'joi';
 import { AWS } from './exports';
 import { SERVICE_NAME, STAGE } from './constants';
-import { AttributeValue, DynamoDBRecord } from 'aws-lambda';
+import { AttributeValue, DynamoDBRecord, StreamRecord } from 'aws-lambda';
 import { Converter } from 'aws-sdk/clients/dynamodb';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
@@ -86,7 +86,7 @@ export const unmarshallDynamoDBImage = <T>(
   return AWS.DynamoDB.Converter.unmarshall(image, options) as T;
 };
 
-export type HandleFn = (record: DynamoDBRecord) => boolean;
+export type HandleFn = (record: StreamRecord) => boolean;
 
 export type StreamRecordHandlers<T> = {
   canHandle: HandleFn;
@@ -102,7 +102,7 @@ export const handleDynamoDBStreamRecord = async <T>(
   if (!record || !record.dynamodb) {
     throw new Error('Invalid record');
   }
-  if (handlers.canHandle(record)) {
+  if (handlers.canHandle(record.dynamodb)) {
     if (record.eventName === 'INSERT' && handlers.onInsert) {
       return handlers.onInsert(unmarshallDynamoDBImage(record.dynamodb.NewImage));
     }

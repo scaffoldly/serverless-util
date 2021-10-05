@@ -4,6 +4,7 @@ import { AWS } from './exports';
 import { SERVICE_NAME, STAGE } from './constants';
 import { AttributeValue, DynamoDBRecord } from 'aws-lambda';
 import { Converter } from 'aws-sdk/clients/dynamodb';
+import { resolve } from 'path';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
   return `${stage}-${serviceName}${tableSuffix ? `-${tableSuffix}` : ''}`;
@@ -95,10 +96,10 @@ export type StreamRecordHandlers<T> = {
   onRemove?: (t: T) => Promise<T>;
 };
 
-export const handleDynamoDBStreamRecord = <T>(
+export const handleDynamoDBStreamRecord = async <T>(
   record: DynamoDBRecord,
   handlers: StreamRecordHandlers<T>,
-): Promise<T> => {
+): Promise<T | null> => {
   if (!record || !record.dynamodb) {
     throw new Error('Invalid record');
   }
@@ -117,7 +118,7 @@ export const handleDynamoDBStreamRecord = <T>(
     }
   }
 
-  throw new Error('Unhandled record');
+  return null;
 };
 
 export { Model };

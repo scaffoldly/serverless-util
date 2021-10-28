@@ -90,15 +90,15 @@ export type HandleFn = (record: StreamRecord) => boolean;
 
 export type StreamRecordHandlers<T> = {
   canHandle: HandleFn;
-  onInsert?: (t: T) => Promise<T>;
-  onModify?: (newT: T, oldT: T) => Promise<T>;
-  onRemove?: (t: T) => Promise<T>;
+  onInsert?: (t: T) => Promise<T | undefined>;
+  onModify?: (newT: T, oldT: T) => Promise<T | undefined>;
+  onRemove?: (t: T) => Promise<T | undefined>;
 };
 
 export const handleDynamoDBStreamRecord = async <T>(
   record: DynamoDBRecord,
   handlers: StreamRecordHandlers<T>,
-): Promise<T | null> => {
+): Promise<T | undefined> => {
   if (!record || !record.dynamodb) {
     throw new Error('Invalid record');
   }
@@ -117,7 +117,7 @@ export const handleDynamoDBStreamRecord = async <T>(
     }
   }
 
-  return null;
+  return;
 };
 
 export { Model };

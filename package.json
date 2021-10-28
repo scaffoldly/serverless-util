@@ -1,6 +1,6 @@
 {
   "name": "@scaffoldly/serverless-util",
-  "version": "4.0.8-0",
+  "version": "4.0.8",
   "description": "Scaffoldly Serverless Helper Functionality",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

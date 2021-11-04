@@ -54,7 +54,7 @@ export const KMS = async (region: string = 'us-east-1'): Promise<AWS.KMS> => {
         throw new Error('Missing metadata while creating aws/lambda key');
       }
       await kms.createAlias({ TargetKeyId: key.KeyMetadata.KeyId, AliasName: keyAlias }).promise();
-    } catch (e) {
+    } catch (e: any) {
       console.warn('Error initializing KMS', e.message);
     }
   }
@@ -113,11 +113,11 @@ export const SES = async (region: string = 'us-east-1'): Promise<AWS.SES> => {
   }
 
   try {
-    const domain = `slyses.${STAGE_DOMAIN}`;
+    const domain = STAGE_DOMAIN;
     console.log(`Initializing SES with default domain`, domain);
     // This request is idempotent so we don't have to check for an existing domain identity
     await ses.verifyDomainIdentity({ Domain: domain }).promise();
-  } catch (e) {
+  } catch (e: any) {
     console.warn('Error initializing SES', e.message);
   }
 
@@ -181,7 +181,7 @@ export const SecretsManager = async (region: string = 'us-east-1'): Promise<AWS.
     const secretName = `lambda/${STAGE}/${SERVICE_NAME}`;
     console.log('Initializing SSM with default secret', secretName);
     await secretsManager.createSecret({ Name: secretName, SecretString: JSON.stringify({}) }).promise();
-  } catch (e) {
+  } catch (e: any) {
     console.warn('Error initializing SSM', e.message);
   }
 

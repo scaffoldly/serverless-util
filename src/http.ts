@@ -44,7 +44,7 @@ export const constructServiceUrl = (request: HttpRequest, serviceSlug?: string, 
   const { host } = headers;
   const ssl = headers['x-forwarded-proto'] === 'https';
 
-  let slug = serviceSlug ? `/${serviceSlug}` : '/';
+  let slug = serviceSlug ? `/${serviceSlug}` : '';
 
   let actualPath = path || '';
   if (!actualPath.startsWith('/') && actualPath.length !== 0) {

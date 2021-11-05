@@ -5,7 +5,7 @@ const { SERVICE_NAME, STAGE, API_GATEWAY_DOMAIN, STAGE_DOMAIN, SERVICE_SLUG } = 
 const apiGatewayDomain = API_GATEWAY_DOMAIN || 'localhost';
 const stageDomain = STAGE_DOMAIN || 'localhost';
 const serviceName = SERVICE_NAME || 'unknown-service-name';
-const serviceSlug = SERVICE_SLUG || 'unknown-service-slug';
+const serviceSlug = SERVICE_SLUG || '';
 const stage = STAGE || 'local';
 
 export {

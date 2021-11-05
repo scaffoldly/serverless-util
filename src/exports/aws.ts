@@ -10,7 +10,12 @@ export const AWS = STAGE !== 'local' ? AWSXRay.captureAWS(_AWS) : _AWS;
 export const XRAY_ENV_TRACE_ID = '_X_AMZN_TRACE_ID';
 
 if (STAGE !== 'local') {
-  AWSXRay.captureHTTPsGlobal(http, true);
+  try {
+    // https://github.com/aws/aws-xray-sdk-node/issues/433
+    AWSXRay.captureHTTPsGlobal(http, true);
+  } catch (e: any) {
+    console.warn('Unable to capture outbound HTTP requests for X-Ray', e.message);
+  }
 }
 
 const instances: {

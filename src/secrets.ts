@@ -58,6 +58,9 @@ export const GetSecret = async (key: string, serviceName = SERVICE_NAME, stage =
     const parsed = JSON.parse(secretResponse.SecretString!);
     if (!parsed[key]) {
       console.warn(`Key not in secrets manager, skipping cache: key=${key} serviceName=${serviceName} stage=${stage}`);
+      if (stage === 'local') {
+        return GetSecretFromEnv(key);
+      }
       return null;
     }
 

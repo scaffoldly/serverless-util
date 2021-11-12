@@ -38,21 +38,11 @@ export const GetSecret = async (key: string, serviceName = SERVICE_NAME, stage =
     return cached;
   }
 
-  let secretsManager: AWS.SecretsManager;
-
-  if (stage === 'local') {
-    if (!boolean(LOCALSTACK)) {
-      return GetSecretFromEnv(key);
-    }
-    try {
-      secretsManager = await SecretsManager();
-    } catch (e: any) {
-      console.warn('Localstack is enabled but inaccessible', e.message);
-      return GetSecretFromEnv(key);
-    }
-  } else {
-    secretsManager = await SecretsManager();
+  if (stage === 'local' && !boolean(LOCALSTACK)) {
+    return GetSecretFromEnv(key);
   }
+
+  let secretsManager = await SecretsManager();
 
   try {
     const secretResponse = await secretsManager
@@ -76,7 +66,10 @@ export const GetSecret = async (key: string, serviceName = SERVICE_NAME, stage =
 
     return GetSecretFromCache(key, serviceName, stage);
   } catch (e: any) {
-    console.error(`Error fetching secret: key=${key} serviceName=${serviceName} stage=${stage}`, e);
+    console.error(`Error fetching secret: key=${key} serviceName=${serviceName} stage=${stage}`, e.message);
+    if (stage === 'local') {
+      return GetSecretFromEnv(key);
+    }
     throw new Error(`Error fetching secret: ${e.message}`);
   }
 };
@@ -128,7 +121,7 @@ export const SetSecret = async (key: string, value: string, base64Encode = false
     const ret = await GetSecret(key, SERVICE_NAME, STAGE);
     return ret;
   } catch (e: any) {
-    console.error(`Error setting secret: key=${key} serviceName=${SERVICE_NAME} stage=${STAGE}`, e);
+    console.error(`Error setting secret: key=${key} serviceName=${SERVICE_NAME} stage=${STAGE}`, e.message);
     throw new Error(`Error fetching secret: ${e.message}`);
   }
 };

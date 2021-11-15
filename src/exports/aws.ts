@@ -158,7 +158,11 @@ export const SNS = async (region: string = 'us-east-1'): Promise<AWS.SNS> => {
   return sns;
 };
 
-export const SecretsManager = async (region: string = 'us-east-1'): Promise<AWS.SecretsManager> => {
+export const SecretsManager = async (
+  serviceName = SERVICE_NAME,
+  stage = STAGE,
+  region: string = 'us-east-1',
+): Promise<AWS.SecretsManager> => {
   if (!instances[region]) {
     instances[region] = {};
   }
@@ -183,7 +187,7 @@ export const SecretsManager = async (region: string = 'us-east-1'): Promise<AWS.
   }
 
   try {
-    const secretName = `lambda/${STAGE}/${SERVICE_NAME}`;
+    const secretName = `lambda/${stage}/${serviceName}`;
     console.log('Initializing SSM with default secret', secretName);
     await secretsManager.createSecret({ Name: secretName, SecretString: JSON.stringify({}) }).promise();
   } catch (e: any) {

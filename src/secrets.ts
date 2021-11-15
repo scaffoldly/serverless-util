@@ -42,7 +42,7 @@ export const GetSecret = async (key: string, serviceName = SERVICE_NAME, stage =
     return GetSecretFromEnv(key);
   }
 
-  let secretsManager = await SecretsManager();
+  let secretsManager = await SecretsManager(serviceName, stage);
 
   try {
     const secretResponse = await secretsManager
@@ -77,31 +77,37 @@ export const GetSecret = async (key: string, serviceName = SERVICE_NAME, stage =
   }
 };
 
-export const SetSecret = async (key: string, value: string, base64Encode = false) => {
+export const SetSecret = async (
+  key: string,
+  value: string,
+  base64Encode = false,
+  serviceName = SERVICE_NAME,
+  stage = STAGE,
+) => {
   const _value = base64Encode ? Buffer.from(value, 'utf8').toString('base64') : value;
 
-  if (STAGE === 'local' && !boolean(LOCALSTACK)) {
-    if (!cache[STAGE]) {
-      cache[STAGE] = {};
+  if (stage === 'local' && !boolean(LOCALSTACK)) {
+    if (!cache[stage]) {
+      cache[stage] = {};
     }
 
-    if (!cache[STAGE][SERVICE_NAME]) {
-      cache[STAGE][SERVICE_NAME] = {};
+    if (!cache[stage][serviceName]) {
+      cache[stage][serviceName] = {};
     }
 
-    cache[STAGE][SERVICE_NAME][key] = _value;
+    cache[stage][serviceName][key] = _value;
 
-    console.log(`Saved secret to cache: key=${key} serviceName=${SERVICE_NAME} stage=${STAGE}`);
+    console.log(`Saved secret to cache: key=${key} serviceName=${serviceName} stage=${stage}`);
 
     return _value;
   }
 
-  const secretsManager = await SecretsManager();
+  const secretsManager = await SecretsManager(serviceName, stage);
 
   try {
     const secretResponse = await secretsManager
       .getSecretValue({
-        SecretId: `lambda/${STAGE}/${SERVICE_NAME}`,
+        SecretId: `lambda/${stage}/${serviceName}`,
       })
       .promise();
 
@@ -119,12 +125,12 @@ export const SetSecret = async (key: string, value: string, base64Encode = false
       .putSecretValue({ SecretId: `lambda/${STAGE}/${SERVICE_NAME}`, SecretString: JSON.stringify(secrets) })
       .promise();
 
-    console.log(`Added secret to Secrets Manager: key=${key} serviceName=${SERVICE_NAME} stage=${STAGE}`);
+    console.log(`Added secret to Secrets Manager: key=${key} serviceName=${serviceName} stage=${stage}`);
 
-    const ret = await GetSecret(key, SERVICE_NAME, STAGE);
+    const ret = await GetSecret(key, serviceName, stage);
     return ret;
   } catch (e: any) {
-    console.error(`Error setting secret: key=${key} serviceName=${SERVICE_NAME} stage=${STAGE}`, e.message);
+    console.error(`Error setting secret: key=${key} serviceName=${serviceName} stage=${stage}`, e.message);
     throw new Error(`Error fetching secret: ${e.message}`);
   }
 };

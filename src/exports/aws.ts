@@ -163,11 +163,12 @@ export const SecretsManager = async (
   stage = STAGE,
   region: string = 'us-east-1',
 ): Promise<AWS.SecretsManager> => {
-  if (!instances[region]) {
-    instances[region] = {};
+  const key = `${serviceName}-${stage}-${region}`;
+  if (!instances[key]) {
+    instances[key] = {};
   }
 
-  let { secretsManager } = instances[region];
+  let { secretsManager } = instances[key];
 
   if (secretsManager) {
     return secretsManager;

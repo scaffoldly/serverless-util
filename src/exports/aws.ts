@@ -19,7 +19,7 @@ if (STAGE !== 'local') {
 }
 
 const instances: {
-  [region: string]: { kms?: AWS.KMS; s3?: AWS.S3; ses?: AWS.SES; sns?: AWS.SNS; secretsManager?: AWS.SecretsManager };
+  [key: string]: { kms?: AWS.KMS; s3?: AWS.S3; ses?: AWS.SES; sns?: AWS.SNS; secretsManager?: AWS.SecretsManager };
 } = {};
 
 export const KMS = async (region: string = 'us-east-1'): Promise<AWS.KMS> => {
@@ -181,7 +181,7 @@ export const SecretsManager = async (
     secretsManager = new AWS.SecretsManager({ endpoint: 'http://localhost:4566', region });
   }
 
-  instances[region].secretsManager = secretsManager;
+  instances[key].secretsManager = secretsManager;
 
   if (!boolean(LOCALSTACK)) {
     return secretsManager;

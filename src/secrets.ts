@@ -122,7 +122,7 @@ export const SetSecret = async (
     secrets[key] = _value;
 
     await secretsManager
-      .putSecretValue({ SecretId: `lambda/${STAGE}/${SERVICE_NAME}`, SecretString: JSON.stringify(secrets) })
+      .putSecretValue({ SecretId: `lambda/${stage}/${serviceName}`, SecretString: JSON.stringify(secrets) })
       .promise();
 
     console.log(`Added secret to Secrets Manager: key=${key} serviceName=${serviceName} stage=${stage}`);

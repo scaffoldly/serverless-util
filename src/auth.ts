@@ -12,14 +12,25 @@ export const URN_PREFIX = 'urn';
 export const AUTH_AUDIENCE_PROVIDER = 'auth';
 export const AUTH_PREFIXES = ['Bearer', 'jwt', 'Token'];
 
+export type AuthorizeTokenParams = {
+  token: string;
+  domain?: string;
+  method?: string;
+  path?: string;
+};
+
 // TODO: External shared cache
 const authCache: { [key: string]: { payload: BaseJwtPayload; expires: Moment } } = {};
 
-const createCacheKey = (token: string, request: HttpRequest): { key: string; method: string; path: string } => {
+const createCacheKey = (
+  token: string,
+  method?: string,
+  path?: string,
+): { key: string; method: string; path: string } => {
   const key = {
     token,
-    method: request.method,
-    path: request.path,
+    method: method || '*',
+    path: path || '*',
   };
   const sha = crypto.createHash('sha1');
   sha.update(JSON.stringify(key));
@@ -136,6 +147,44 @@ export const verifyAudience = (domain: string, aud: string): boolean => {
   return false;
 };
 
+export const authorizeToken = async ({ token, domain, method, path }: AuthorizeTokenParams) => {
+  const decoded = JWT.decode(token) as BaseJwtPayload;
+  if (!decoded) {
+    throw new HttpError(400, 'Unable to decode token');
+  }
+
+  if (domain && !verifyAudience(domain, decoded.aud)) {
+    throw new HttpError(401, 'Unauthorized');
+  }
+
+  const cacheKey = createCacheKey(token, method, path);
+
+  if (authCache[cacheKey.key]) {
+    const { expires, payload } = authCache[cacheKey.key];
+    if (moment().isBefore(expires)) {
+      console.log(`Returning cached payload for ${payload.aud} (expires: ${expires}; cacheKey: ${cacheKey})`);
+      return payload;
+    }
+  }
+
+  const { iss } = decoded;
+  if (!iss) {
+    throw new HttpError(400, 'Missing issuer in token payload');
+  }
+
+  console.log(`Authorizing ${decoded.sub} externally to ${iss}`);
+
+  const { data: payload } = await axios.post(iss, { token });
+
+  console.log(`Authorization response`, payload);
+
+  const ret = payload as BaseJwtPayload;
+
+  authCache[cacheKey.key] = { payload, expires: moment(ret.exp * 1000) };
+
+  return authCache[cacheKey.key].payload;
+};
+
 // TODO Lambda Authorizer
 export function authorize(domain?: string) {
   // TODO: Support Scopes
@@ -154,40 +203,6 @@ export function authorize(domain?: string) {
       throw new HttpError(400, 'Unable to extract token');
     }
 
-    const decoded = JWT.decode(token) as BaseJwtPayload;
-    if (!decoded) {
-      throw new HttpError(400, 'Unable to decode token');
-    }
-
-    if (domain && !verifyAudience(domain, decoded.aud)) {
-      throw new HttpError(401, 'Unauthorized');
-    }
-
-    const cacheKey = createCacheKey(token, request);
-
-    if (authCache[cacheKey.key]) {
-      const { expires, payload } = authCache[cacheKey.key];
-      if (moment().isBefore(expires)) {
-        console.log(`Returning cached payload for ${payload.aud} (expires: ${expires}; cacheKey: ${cacheKey})`);
-        return payload;
-      }
-    }
-
-    const { iss } = decoded;
-    if (!iss) {
-      throw new Error('Missing issuer in token payload');
-    }
-
-    console.log(`Authorizing ${decoded.sub} externally to ${iss}`);
-
-    const { data: payload } = await axios.post(iss, { token });
-
-    console.log(`Authorization response`, payload);
-
-    const ret = payload as BaseJwtPayload;
-
-    authCache[cacheKey.key] = { payload, expires: moment(ret.exp * 1000) };
-
-    return authCache[cacheKey.key].payload;
+    return authorizeToken({ token, domain, method: request.method, path: request.path });
   };
 }

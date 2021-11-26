@@ -88,17 +88,17 @@ export const unmarshallDynamoDBImage = <T>(
 
 export type HandleFn = (record: StreamRecord) => boolean;
 
-export type StreamRecordHandlers<T> = {
+export type StreamRecordHandlers<T, K = T> = {
   canHandle: HandleFn;
-  onInsert?: (t: T) => Promise<T | null>;
-  onModify?: (newT: T, oldT: T) => Promise<T | null>;
-  onRemove?: (t: T) => Promise<T | null>;
+  onInsert?: (t: T) => Promise<T | K | null>;
+  onModify?: (newT: T, oldT: T) => Promise<T | K | null>;
+  onRemove?: (t: T) => Promise<T | K | null>;
 };
 
-export const handleDynamoDBStreamRecord = async <T>(
+export const handleDynamoDBStreamRecord = async <T, K = T>(
   record: DynamoDBRecord,
-  handlers: StreamRecordHandlers<T>,
-): Promise<T | null> => {
+  handlers: StreamRecordHandlers<T, K>,
+): Promise<T | K | null> => {
   if (!record || !record.dynamodb) {
     throw new Error('Invalid record');
   }

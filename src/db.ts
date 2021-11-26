@@ -102,7 +102,7 @@ export const handleDynamoDBStreamRecord = async <T, K = T>(
   if (!record || !record.dynamodb) {
     throw new Error('Invalid record');
   }
-  if (handlers.canHandle(unmarshallDynamoDBImage(record.dynamodb.Keys))) {
+  if (handlers.canHandle(record.dynamodb)) {
     if (record.eventName === 'INSERT' && handlers.onInsert) {
       return handlers.onInsert(unmarshallDynamoDBImage(record.dynamodb.NewImage));
     }

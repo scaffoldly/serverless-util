@@ -131,7 +131,11 @@ export const verifyAudience = (providers: string[], domain: string, aud: string)
     return false;
   }
 
-  if (providers.length && checkProvider && !providers.includes(checkProvider)) {
+  if (
+    providers.length &&
+    checkProvider &&
+    !providers.find((provider) => provider.toLowerCase() === checkProvider.toLowerCase())
+  ) {
     console.warn(`Provider mismatch. Got ${checkProvider}, expected one of ${providers}`);
     return false;
   }

@@ -159,9 +159,9 @@ export const verifyIssuer = (domain: string, iss: string): boolean => {
     return false;
   }
 
-  const url = new URL(iss);
+  const issuerUrl = new URL(iss);
 
-  if (url.hostname === iss) {
+  if (issuerUrl.hostname.endsWith(domain)) {
     return true;
   }
 

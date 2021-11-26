@@ -14,7 +14,7 @@ export const AUTH_PREFIXES = ['Bearer', 'jwt', 'Token'];
 
 export type AuthorizeTokenParams = {
   token: string;
-  provider: string;
+  providers: string[];
   domain?: string;
   method?: string;
   path?: string;
@@ -118,7 +118,7 @@ export const parseUrn = (urn: string): { prefix?: string; domain?: string; provi
   return { prefix, provider, domain };
 };
 
-export const verifyAudience = (provider: string, domain: string, aud: string): boolean => {
+export const verifyAudience = (providers: string[], domain: string, aud: string): boolean => {
   if (!aud) {
     console.warn('Missing audience');
     return false;
@@ -131,8 +131,8 @@ export const verifyAudience = (provider: string, domain: string, aud: string): b
     return false;
   }
 
-  if (checkProvider !== provider) {
-    console.warn(`Provider mismatch. Got ${provider}, expected ${checkProvider}`);
+  if (providers.length && checkProvider && !providers.includes(checkProvider)) {
+    console.warn(`Provider mismatch. Got ${checkProvider}, expected one of ${providers}`);
     return false;
   }
 
@@ -169,13 +169,13 @@ export const verifyIssuer = (domain: string, iss: string): boolean => {
   return false;
 };
 
-export const authorizeToken = async ({ provider, token, domain, method, path }: AuthorizeTokenParams) => {
+export const authorizeToken = async ({ providers, token, domain, method, path }: AuthorizeTokenParams) => {
   const decoded = JWT.decode(token) as BaseJwtPayload;
   if (!decoded) {
     throw new HttpError(400, 'Unable to decode token');
   }
 
-  if (domain && !verifyAudience(provider, domain, decoded.aud)) {
+  if (domain && !verifyAudience(providers, domain, decoded.aud)) {
     throw new HttpError(401, 'Unauthorized');
   }
 
@@ -226,7 +226,7 @@ export const authorizeToken = async ({ provider, token, domain, method, path }: 
 };
 
 // TODO Lambda Authorizer
-export function authorize(domain?: string, provider = DEFAULT_PROVIDER) {
+export function authorize(domain?: string, providers = [DEFAULT_PROVIDER]) {
   // TODO: Support Scopes
   return async (request: HttpRequest, securityName: string, _scopes?: string[]): Promise<BaseJwtPayload> => {
     if (securityName !== 'jwt') {
@@ -243,6 +243,6 @@ export function authorize(domain?: string, provider = DEFAULT_PROVIDER) {
       throw new HttpError(400, 'Unable to extract token');
     }
 
-    return authorizeToken({ provider, token, domain, method: request.method, path: request.path });
+    return authorizeToken({ providers, token, domain, method: request.method, path: request.path });
   };
 }

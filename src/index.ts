@@ -9,3 +9,4 @@ export * from './http';
 export * from './interfaces';
 export * from './secrets';
 export * from './encryption';
+export * from './events';

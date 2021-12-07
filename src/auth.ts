@@ -174,9 +174,15 @@ export const verifyIssuer = (domain: string, iss: string): boolean => {
 };
 
 export const authorizeToken = async ({ providers, token, domain, method, path }: AuthorizeTokenParams) => {
-  const decoded = JWT.decode(token) as BaseJwtPayload;
-  if (!decoded) {
-    throw new HttpError(400, 'Unable to decode token');
+  let decoded: BaseJwtPayload;
+  try {
+    decoded = JWT.decode(token) as BaseJwtPayload;
+  } catch (e) {
+    if (e instanceof Error) {
+      throw new HttpError(400, `Error decoding authentication token: ${e.message}`);
+    } else {
+      throw e;
+    }
   }
 
   if (domain && !verifyAudience(providers, domain, decoded.aud)) {

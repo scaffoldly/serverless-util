@@ -179,7 +179,7 @@ export const authorizeToken = async ({ providers, token, domain, method, path }:
     decoded = JWT.decode(token) as BaseJwtPayload;
   } catch (e) {
     if (e instanceof Error) {
-      throw new HttpError(400, `Error decoding authentication token: ${e.message}`);
+      throw new HttpError(401, `Error decoding authentication token: ${e.message}`);
     } else {
       throw e;
     }

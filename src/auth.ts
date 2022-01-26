@@ -222,8 +222,8 @@ export const authorizeToken = async ({ providers, token, domain, method, path }:
     return authCache[cacheKey.key].payload;
   } catch (e: any) {
     if (Axios.isAxiosError(e) && e.response && e.response.status) {
-      if (e.response.status === 401) {
-        throw new HttpError(e.response.status, 'Unauthorized', {
+      if (e.response.status === 401 || e.response.status === 403) {
+        throw new HttpError(e.response.status, e.response.status === 401 ? 'Unauthorized' : 'Forbidden', {
           url: iss,
           status: e.response.status,
           message: e.message,

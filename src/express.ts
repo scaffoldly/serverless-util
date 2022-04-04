@@ -24,7 +24,7 @@ export interface CorsOptions {
 export const createApp = ({ logHeaders = false } = {}): Express => {
   const app = express();
   app.disable('x-powered-by');
-  app.use(express.json());
+  app.use(express.json({ limit: 5242880 }));
   morganBody(app, {
     noColors: true,
     immediateReqLog: true,

@@ -19,7 +19,14 @@ if (STAGE !== 'local') {
 }
 
 const instances: {
-  [key: string]: { kms?: AWS.KMS; s3?: AWS.S3; ses?: AWS.SES; sns?: AWS.SNS; secretsManager?: AWS.SecretsManager };
+  [key: string]: {
+    kms?: AWS.KMS;
+    s3?: AWS.S3;
+    ses?: AWS.SES;
+    sns?: AWS.SNS;
+    secretsManager?: AWS.SecretsManager;
+    lambda?: AWS.Lambda;
+  };
 } = {};
 
 export const KMS = async (region: string = 'us-east-1'): Promise<AWS.KMS> => {
@@ -196,4 +203,31 @@ export const SecretsManager = async (
   }
 
   return secretsManager;
+};
+
+export const Lambda = async (region: string = 'us-east-1'): Promise<AWS.Lambda> => {
+  if (!instances[region]) {
+    instances[region] = {};
+  }
+
+  let { lambda } = instances[region];
+
+  if (lambda) {
+    return lambda;
+  }
+
+  if (!boolean(LOCALSTACK)) {
+    lambda = new AWS.Lambda({ region: region });
+  } else {
+    console.warn('Using Localstack S3');
+    lambda = new AWS.Lambda({ endpoint: 'http://localhost:4566', region });
+  }
+
+  instances[region].lambda = lambda;
+
+  if (!boolean(LOCALSTACK)) {
+    return lambda;
+  }
+
+  return lambda;
 };

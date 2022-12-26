@@ -4,6 +4,9 @@ import { AWS } from './exports';
 import { SERVICE_NAME, STAGE } from './constants';
 import { AttributeValue, DynamoDBRecord, StreamRecord } from 'aws-lambda';
 import { Converter } from 'aws-sdk/clients/dynamodb';
+import { from_values as timeflake } from 'timeflake';
+import BN from 'bn.js';
+import seedrandom from 'seedrandom';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
   return `${stage}-${serviceName}${tableSuffix ? `-${tableSuffix}` : ''}`;
@@ -120,4 +123,18 @@ export const handleDynamoDBStreamRecord = async <T, K = T>(
   return null;
 };
 
-export { Model };
+const stringToId = <Version extends string, Namespace extends string>(
+  value: string,
+  version: Version,
+  namespace: Namespace,
+): string => {
+  const timestamp = Math.abs(seedrandom(value).int32());
+  const random = Math.abs(seedrandom(version).int32());
+  const id = timeflake(new BN(timestamp), new BN(random));
+
+  const suffix = STAGE !== 'live' ? STAGE : '';
+
+  return `${version}.${namespace}${suffix}.${id.base62}`;
+};
+
+export { Model, stringToId };

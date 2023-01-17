@@ -40,6 +40,8 @@ export class Table<T> {
       options = {
         region: 'localhost',
         endpoint: 'http://localhost:8100',
+        accessKeyId: 'DEFAULT_ACCESS_KEY',
+        secretAccessKey: 'DEFAULT_SECRET',
       };
     }
 

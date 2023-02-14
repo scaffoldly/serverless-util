@@ -1,4 +1,4 @@
-import { define, Model } from 'dynamodb';
+import { define, Model } from '@scaffoldly/dynamodb';
 import Joi from 'joi';
 import { AWS } from './exports';
 import { SERVICE_NAME, STAGE } from './constants';

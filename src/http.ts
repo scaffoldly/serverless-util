@@ -80,7 +80,7 @@ export const extractAuthorization = (request: HttpRequest): string | null => {
   return null;
 };
 
-export const extractToken = (authorization: string): string | null => {
+export const extractToken = (authorization: string, authTypes = AUTH_PREFIXES): string | null => {
   if (!authorization) {
     console.warn('Missing authorization header');
     return null;
@@ -96,7 +96,8 @@ export const extractToken = (authorization: string): string | null => {
 
   if (parts.length === 2) {
     const prefix = parts[0];
-    if (AUTH_PREFIXES.indexOf(prefix) === -1) {
+    authTypes = authTypes.map((t) => t.toLowerCase());
+    if (authTypes.indexOf(prefix.toLowerCase()) === -1) {
       console.warn(`Invalid token type: ${prefix}`);
       return null;
     }

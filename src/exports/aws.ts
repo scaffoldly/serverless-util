@@ -26,6 +26,7 @@ const instances: {
     sns?: AWS.SNS;
     secretsManager?: AWS.SecretsManager;
     lambda?: AWS.Lambda;
+    dynamodb?: AWS.DynamoDB;
   };
 } = {};
 
@@ -44,7 +45,7 @@ export const KMS = async (region: string = 'us-east-1'): Promise<AWS.KMS> => {
     kms = new AWS.KMS({ region: region });
   } else {
     console.warn('Using Localstack KMS');
-    kms = new AWS.KMS({ endpoint: 'http://localhost:4566', region });
+    kms = new AWS.KMS({ endpoint: process.env.AWS_ENDPOINT_URL || 'http://localhost:4566' });
   }
 
   instances[region].kms = kms;
@@ -89,14 +90,10 @@ export const S3 = async (region: string = 'us-east-1'): Promise<AWS.S3> => {
     s3 = new AWS.S3({ region: region });
   } else {
     console.warn('Using Localstack S3');
-    s3 = new AWS.S3({ endpoint: 'http://localhost:4566', region });
+    s3 = new AWS.S3({ endpoint: process.env.AWS_ENDPOINT_URL || 'http://localhost:4566' });
   }
 
   instances[region].s3 = s3;
-
-  if (!boolean(LOCALSTACK)) {
-    return s3;
-  }
 
   return s3;
 };
@@ -115,7 +112,7 @@ export const SES = async (region: string = 'us-east-1'): Promise<AWS.SES> => {
   if (!boolean(LOCALSTACK)) {
     ses = new AWS.SES({ region: region });
   } else {
-    ses = new AWS.SES({ endpoint: 'http://localhost:4566', region });
+    ses = new AWS.SES({ endpoint: process.env.AWS_ENDPOINT_URL || 'http://localhost:4566' });
   }
 
   instances[region].ses = ses;
@@ -151,16 +148,10 @@ export const SNS = async (region: string = 'us-east-1'): Promise<AWS.SNS> => {
     sns = new AWS.SNS({ region: region });
   } else {
     console.warn('Using Localstack SNS');
-    sns = new AWS.SNS({ endpoint: 'http://localhost:4566', region });
+    sns = new AWS.SNS({ endpoint: process.env.AWS_ENDPOINT_URL || 'http://localhost:4566' });
   }
 
   instances[region].sns = sns;
-
-  if (!boolean(LOCALSTACK)) {
-    return sns;
-  }
-
-  instances[region].sns = new AWS.SNS({ endpoint: 'http://localhost:4566', region });
 
   return sns;
 };
@@ -185,7 +176,9 @@ export const SecretsManager = async (
     secretsManager = new AWS.SecretsManager({ region: region });
   } else {
     console.warn('Using Localstack SecretsManager');
-    secretsManager = new AWS.SecretsManager({ endpoint: 'http://localhost:4566', region });
+    secretsManager = new AWS.SecretsManager({
+      endpoint: process.env.AWS_ENDPOINT_URL || 'http://localhost:4566',
+    });
   }
 
   instances[key].secretsManager = secretsManager;
@@ -220,14 +213,33 @@ export const Lambda = async (region: string = 'us-east-1'): Promise<AWS.Lambda> 
     lambda = new AWS.Lambda({ region: region });
   } else {
     console.warn('Using Localstack S3');
-    lambda = new AWS.Lambda({ endpoint: 'http://localhost:4566', region });
+    lambda = new AWS.Lambda({ endpoint: process.env.AWS_ENDPOINT_URL || 'http://localhost:4566' });
   }
 
   instances[region].lambda = lambda;
 
-  if (!boolean(LOCALSTACK)) {
-    return lambda;
+  return lambda;
+};
+
+export const DynamoDB = async (region: string = 'us-east-1'): Promise<AWS.DynamoDB> => {
+  if (!instances[region]) {
+    instances[region] = {};
   }
 
-  return lambda;
+  let { dynamodb } = instances[region];
+
+  if (dynamodb) {
+    return dynamodb;
+  }
+
+  if (!boolean(LOCALSTACK)) {
+    dynamodb = new AWS.DynamoDB({ region: region });
+  } else {
+    console.warn('Using Localstack S3');
+    dynamodb = new AWS.DynamoDB({ endpoint: process.env.AWS_ENDPOINT_URL || 'http://localhost:4566' });
+  }
+
+  instances[region].dynamodb = dynamodb;
+
+  return dynamodb;
 };

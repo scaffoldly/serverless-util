@@ -7,6 +7,8 @@ import { Converter } from 'aws-sdk/clients/dynamodb';
 import { from_values as timeflake } from 'timeflake';
 import BN from 'bn.js';
 import seedrandom from 'seedrandom';
+import { LOCALSTACK } from './exports/aws';
+import { boolean } from 'boolean';
 
 const createTableName = (tableSuffix: string, serviceName: string, stage: string) => {
   return `${stage}-${serviceName}${tableSuffix ? `-${tableSuffix}` : ''}`;
@@ -38,10 +40,10 @@ export class Table<T> {
     let options: AWS.DynamoDB.ClientConfiguration = {};
     if (stage === 'local') {
       options = {
-        region: 'localhost',
-        endpoint: 'http://localhost:8100',
-        accessKeyId: 'DEFAULT_ACCESS_KEY',
-        secretAccessKey: 'DEFAULT_SECRET',
+        region: process.env.AWS_DEFAULT_REGION || 'localhost',
+        endpoint: process.env.AWS_ENDPOINT_URL || 'http://localhost:8100',
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'DEFAULT_ACCESS_KEY',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'DEFAULT_SECRET',
       };
     }
 
@@ -59,7 +61,15 @@ export class Table<T> {
       timestamps: true,
     });
 
-    this.model.config({ dynamodb: new AWS.DynamoDB(options) });
+    let dynamodb = new AWS.DynamoDB(options);
+
+    if (!boolean(LOCALSTACK)) {
+      options = {
+        endpoint: process.env.AWS_ENDPOINT_URL || 'http://localhost:4566',
+      };
+    }
+
+    this.model.config({ dynamodb });
   }
 
   public matches(fullTableName: string): boolean {

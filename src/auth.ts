@@ -1,5 +1,5 @@
 import { HttpError } from './errors';
-import { JWT } from 'jose';
+import * as jose from 'jose';
 import Axios from 'axios';
 
 import crypto from 'crypto';
@@ -176,7 +176,7 @@ export const verifyIssuer = (domain: string, iss: string): boolean => {
 export const authorizeToken = async ({ providers, token, domain, method, path }: AuthorizeTokenParams) => {
   let decoded: BaseJwtPayload;
   try {
-    decoded = JWT.decode(token) as BaseJwtPayload;
+    decoded = jose.decodeJwt(token);
   } catch (e) {
     if (e instanceof Error) {
       throw new HttpError(401, `Error decoding authentication token: ${e.message}`);

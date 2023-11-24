@@ -1,4 +1,4 @@
-const ALLOWED_STATUS_CODES = [400, 401, 403, 404, 422, 500, 502, 504];
+const ALLOWED_STATUS_CODES = [400, 401, 403, 404, 422, 429, 500, 502, 504];
 
 export class HttpError extends Error {
   statusCode: number;
